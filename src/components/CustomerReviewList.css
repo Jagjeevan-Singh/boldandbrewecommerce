@@ -1,0 +1,44 @@
+.customer-review-list {
+  width: 100%;
+  max-width: 600px;
+  margin: 2rem auto 0 auto;
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 2px 12px #bcae9e22;
+  padding: 1.2rem 1.2rem 1.5rem 1.2rem;
+}
+.customer-review-list h4 {
+  margin-bottom: 1.1em;
+  font-size: 1.2rem;
+  color: #222;
+  font-weight: 700;
+}
+.review-item {
+  border-bottom: 1px solid #eee;
+  padding: 0.7em 0 0.7em 0;
+}
+.review-item:last-child {
+  border-bottom: none;
+}
+.review-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.2em;
+}
+.review-name {
+  font-weight: 600;
+  color: #7c5a3a;
+  font-size: 1.05em;
+}
+.review-rating {
+  display: flex;
+  gap: 2px;
+}
+.review-comment {
+  color: #333;
+  font-size: 1em;
+  margin-left: 2px;
+  margin-top: 0.1em;
+  word-break: break-word;
+}

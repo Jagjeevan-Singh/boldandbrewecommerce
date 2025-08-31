@@ -1,0 +1,144 @@
+/* Wishlist icon top left */
+.wishlist-icon-btn {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  background: none;
+  border: none;
+  color: #bcae9e;
+  font-size: 1.6rem;
+  z-index: 3;
+  cursor: pointer;
+  padding: 4px;
+  transition: color 0.2s;
+}
+.wishlist-icon-btn.wishlisted {
+  color: #e53935;
+}
+.wishlist-icon-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.products-page {
+  padding: 4rem 2rem;
+  background: none;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.products-page h2 {
+  font-size: 2.5rem;
+  margin-bottom: 3rem;
+  color: #4e342e;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* Grid Layout */
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 2.5rem;
+  max-width: 1300px;
+  width: 100%;
+  justify-items: center;
+  align-items: stretch;
+}
+
+/* Card Styling */
+.product-card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 1.5rem;
+  width: 100%;
+  max-width: 300px;
+  height: 100%;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+  transition: transform 0.4s ease, box-shadow 0.4s ease;
+  cursor: pointer;
+  border: 1px solid #f57c00;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  position: relative;
+}
+
+.product-card:hover {
+  transform: translateY(-8px) scale(1.03);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
+}
+
+/* Square Image with Fit */
+.product-image {
+  width: 100%;
+  aspect-ratio: 1/1;
+  object-fit: cover;
+  border-radius: 12px;
+  background: #f5f5f5;
+  margin-bottom: 1rem;
+  border: 1px solid #eee;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  transition: transform 0.3s ease;
+}
+
+.product-card:hover .product-image {
+  transform: scale(1.05);
+}
+
+/* Title */
+.product-card h3 {
+  font-size: 1.2rem;
+  color: #3e2723;
+  margin: 0.5rem 0;
+  font-weight: 600;
+}
+
+/* Price */
+.price {
+  font-size: 1.1rem;
+  color: #ad0909;
+  font-weight: bold;
+}
+
+.original-price {
+  text-decoration: line-through;
+  font-size: 0.95rem;
+  color: #888;
+  margin-left: 6px;
+}
+
+/* Action Buttons */
+.product-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: auto;
+  width: 100%;
+  gap: 0.75rem;
+  padding-top: 1rem;
+}
+
+.product-actions button {
+  flex: 1;
+  padding: 10px 0;
+  background: #ad0909;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: background 0.3s ease, transform 0.2s ease;
+}
+
+.product-actions button:hover {
+  background: red;
+  transform: scale(1.05);
+}

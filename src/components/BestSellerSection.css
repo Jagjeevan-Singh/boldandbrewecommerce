@@ -1,0 +1,221 @@
+/* Image container for perfect alignment */
+.best-seller-img-container {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  max-width: 100%;
+  margin: 0 auto 18px auto;
+}
+/* Wishlist icon top right for best seller */
+.wishlist-icon-btn {
+  position: absolute;
+  top: 0px;
+  left: auto;
+  right: 0;
+  background: none;
+  border: none;
+  color: #bcae9e;
+  font-size: 2.1rem;
+  z-index: 10;
+  cursor: pointer;
+  padding: 0;
+  border-radius: 50%;
+  box-shadow: none;
+  transition: color 0.2s;
+}
+.wishlist-icon-btn.wishlisted {
+  color: #e53935;
+}
+.wishlist-icon-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+/* Out of Stock Badge */
+.out-of-stock-badge {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: #b71c1c;
+  color: #fff;
+  font-size: 1em;
+  font-weight: 700;
+  padding: 4px 14px;
+  border-radius: 8px;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 8px #bcae9e33;
+  z-index: 2;
+}
+.best-seller-section {
+  position: relative;
+  padding: 64px 0 48px 0;
+  min-height: 480px;
+  background: linear-gradient(135deg, #fffbe6 0%, #ffe5d0 50%, #ffe6fa 100%);
+  z-index: 1;
+  overflow: hidden;
+  animation: best-seller-bg-anim 8s ease-in-out infinite alternate;
+  margin-top: -10px;
+}
+
+@keyframes best-seller-bg-anim {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 100% 50%; }
+}
+
+.best-seller-bg {
+  display: none;
+}
+
+.best-seller-content {
+  position: relative;
+  z-index: 1;
+  max-width: 1200px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.best-seller-title {
+  font-size: 2.6rem;
+  font-weight: 800;
+  color: #4a3c35;
+  margin-bottom: 36px;
+  letter-spacing: 1px;
+  text-shadow: 0 2px 12px #fff8, 0 1px 0 #e0c9b6;
+}
+
+.best-seller-grid {
+  display: flex;
+  gap: 24px;
+  justify-content: center;
+  flex-wrap: nowrap;
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.best-seller-card {
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 6px 32px #bcae9e33, 0 1.5px 0 #e0c9b6;
+  padding: 32px 28px 28px 28px;
+  min-width: 220px;
+  max-width: 320px;
+  width: 100%;
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  transition: transform 0.18s, box-shadow 0.18s;
+  cursor: pointer;
+}
+.best-seller-card:hover {
+  transform: translateY(-8px) scale(1.04) rotate(-1deg);
+  box-shadow: 0 12px 48px #bcae9e55, 0 2px 0 #e0c9b6;
+}
+
+.best-seller-tag {
+  position: absolute;
+  top: 18px;
+  left: 18px;
+  background: #7c5a3a;
+  color: #fff;
+  font-size: 0.98em;
+  font-weight: 700;
+  padding: 4px 14px;
+  border-radius: 8px;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 8px #bcae9e33;
+}
+
+.best-seller-img {
+  width: 240px;
+  height: 240px;
+  max-width: 90%;
+  object-fit: contain;
+  border-radius: 12px;
+  margin-bottom: 18px;
+  box-shadow: 0 2px 16px #bcae9e22;
+  background: #f7f3ef;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+.best-seller-prices {
+  margin-bottom: 18px;
+}
+.best-seller-price {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #d2691e;
+  margin-right: 12px;
+}
+.best-seller-original {
+  font-size: 1.05rem;
+  color: #b19d8e;
+  text-decoration: line-through;
+}
+
+.best-seller-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+.best-seller-add {
+  background: linear-gradient(90deg, #7c5a3a 60%, #d2691e 100%);
+  color: #fff;
+  font-weight: 700;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 22px;
+  font-size: 1.08em;
+  cursor: pointer;
+  box-shadow: 0 2px 8px #bcae9e22;
+  transition: background 0.18s;
+}
+.best-seller-add:hover {
+  background: linear-gradient(90deg, #d2691e 60%, #7c5a3a 100%);
+}
+
+
+
+@media (max-width: 900px) {
+  .best-seller-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    justify-items: center;
+    align-items: stretch;
+    overflow-x: visible;
+    scrollbar-width: none;
+  }
+  .best-seller-card {
+    min-width: 0;
+    max-width: 100%;
+    width: 100%;
+    padding: 12px 4px 14px 4px;
+    align-items: center;
+  }
+  .best-seller-img {
+    width: 150px;
+    height: 150px;
+    margin-bottom: 10px;
+  }
+  .best-seller-tag {
+    position: static;
+    display: inline-block;
+    margin-bottom: 8px;
+    margin-top: 0;
+    left: unset;
+    top: unset;
+    width: auto;
+    font-size: 0.98em;
+  }
+}
+
+/* Custom scrollbar for horizontal scroll */
+

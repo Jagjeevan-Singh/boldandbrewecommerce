@@ -1,0 +1,178 @@
+/* Espresso Recipe Beautiful Section */
+.espresso-recipe-beautiful {
+  background: linear-gradient(120deg, #fffbe6 0%, #f7e7ce 100%);
+  border-radius: 18px;
+  box-shadow: 0 2px 18px #c39b2b22;
+  padding: 2.2rem 1.5rem 2.2rem 1.5rem;
+  margin: 2.5rem auto 2rem auto;
+  max-width: 540px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.espresso-recipe-beautiful h2 {
+  font-size: 2.1rem;
+  font-weight: 900;
+  color: #7c5a3a;
+  margin-bottom: 0.7em;
+  text-align: center;
+}
+.espresso-desc {
+  font-size: 1.13rem;
+  color: #5a4533;
+  margin-bottom: 1.1em;
+  text-align: center;
+}
+.espresso-section {
+  width: 100%;
+  margin-bottom: 1.5em;
+}
+.espresso-section h3 {
+  color: #c39b2b;
+  font-size: 1.15rem;
+  margin-bottom: 0.5em;
+  font-weight: 700;
+}
+.espresso-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 0.7em 0;
+}
+.espresso-list li {
+  background: #fff;
+  border-radius: 8px;
+  margin-bottom: 0.4em;
+  padding: 0.5em 1em;
+  font-size: 1.05rem;
+  color: #7c5a3a;
+  box-shadow: 0 1px 6px #c39b2b11;
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+}
+.espresso-note {
+  color: #b71c1c;
+  font-size: 0.98em;
+  margin-left: 0.4em;
+}
+.espresso-steps {
+  margin: 0 0 0.7em 1.2em;
+  font-size: 1.05rem;
+  color: #5a4533;
+}
+.espresso-highlight {
+  color: #c39b2b;
+  font-weight: 700;
+}
+.espresso-tip {
+  background: #fffbe6;
+  border-left: 4px solid #c39b2b;
+  border-radius: 0 8px 8px 0;
+  padding: 0.7em 1em;
+  margin: 0.7em 0 0 0;
+  font-size: 1.02rem;
+  color: #7c5a3a;
+  box-shadow: 0 1px 6px #c39b2b11;
+}
+.espresso-meta {
+  margin: 2.2em auto 0 auto;
+  text-align: center;
+  font-size: 1.08rem;
+  color: #7c5a3a;
+  font-weight: 600;
+}
+@media (max-width: 700px) {
+  .espresso-recipe-beautiful {
+    padding: 1.2rem 0.3rem 1.2rem 0.3rem;
+    max-width: 98vw;
+  }
+}
+
+.recipe-page {
+  max-width: 600px;
+  margin: 48px auto 64px auto;
+  background: linear-gradient(120deg, #fff7f0 0%, #f5ede6 100%);
+  border-radius: 28px;
+  box-shadow: 0 8px 32px #bcae9e33, 0 2px 0 #e0c9b6;
+  padding: 44px 32px 36px 32px;
+  font-family: 'Poppins', 'Montserrat', Arial, sans-serif;
+  color: #4a3c35;
+  position: relative;
+  overflow: hidden;
+}
+
+.recipe-page h2 {
+  font-size: 2.3rem;
+  font-weight: 800;
+  color: #7c5a3a;
+  margin-bottom: 10px;
+  letter-spacing: 1px;
+  text-align: center;
+}
+
+.recipe-page h3 {
+  color: #b9805a;
+  font-size: 1.25rem;
+  margin-top: 28px;
+  margin-bottom: 10px;
+  font-weight: 700;
+}
+
+.recipe-page p {
+  font-size: 1.13em;
+  color: #5a463a;
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+.recipe-page ul, .recipe-page ol {
+  margin: 0 0 0 24px;
+  font-size: 1.13em;
+  color: #4a3c35;
+}
+
+.recipe-page li {
+  margin-bottom: 10px;
+  line-height: 1.7;
+  position: relative;
+}
+
+.recipe-page ul li:before {
+  content: '\2615';
+  color: #b9805a;
+  font-size: 1.1em;
+  margin-right: 10px;
+  position: absolute;
+  left: -24px;
+  top: 0.1em;
+}
+
+
+/* Remove custom numbering for steps, use default browser numbering */
+.recipe-page ol li {
+  padding-left: 8px;
+}
+
+
+@media (max-width: 700px) {
+  .recipe-page {
+    padding: 24px 6vw 24px 6vw;
+    margin: 24px 0 32px 0;
+  }
+  .recipe-page h2 {
+    font-size: 1.5rem;
+  }
+}
+
+/* Decorative coffee bean SVG background */
+.recipe-page:after {
+  content: '';
+  position: absolute;
+  right: -60px;
+  top: 40px;
+  width: 180px;
+  height: 180px;
+  background: url('data:image/svg+xml;utf8,<svg width="180" height="180" viewBox="0 0 180 180" fill="none" xmlns="http://www.w3.org/2000/svg"><ellipse cx="90" cy="90" rx="80" ry="40" fill="%23b9805a" fill-opacity="0.13"/><ellipse cx="90" cy="90" rx="60" ry="30" fill="%237c5a3a" fill-opacity="0.11"/></svg>') no-repeat center/contain;
+  pointer-events: none;
+  z-index: 0;
+}

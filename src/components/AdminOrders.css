@@ -1,0 +1,112 @@
+.admin-orders-container {
+  max-width: 1100px;
+  margin: 40px auto 0 auto;
+  padding: 24px;
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.08);
+  font-family: 'Poppins', Arial, sans-serif;
+}
+
+.admin-orders-title {
+  font-size: 2.2rem;
+  font-weight: 700;
+  margin-bottom: 28px;
+  color: #3e2723;
+  text-align: center;
+}
+
+.admin-orders-loading, .admin-orders-empty {
+  text-align: center;
+  color: #888;
+  font-size: 1.1rem;
+  margin-top: 40px;
+}
+
+.admin-orders-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 28px;
+  justify-content: center;
+}
+
+.admin-order-card {
+  border: 1px solid #e0e0e0;
+  border-radius: 14px;
+  padding: 22px 18px 16px 18px;
+  background: #faf7f2;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.04);
+  min-width: 320px;
+  max-width: 370px;
+  flex: 1 1 340px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.admin-order-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 1rem;
+  color: #795548;
+  margin-bottom: 6px;
+}
+
+.admin-order-user {
+  font-size: 1rem;
+  color: #4e342e;
+  margin-bottom: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+.admin-order-user-label {
+  font-weight: 600;
+  color: #b9805a;
+}
+.admin-order-user-name {
+  font-weight: 500;
+  color: #6d4c41;
+}
+.admin-order-user-email {
+  color: #888;
+  font-size: 0.98em;
+}
+
+.admin-order-items {
+  margin-bottom: 8px;
+}
+.admin-order-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 3px 0;
+  font-size: 1rem;
+}
+.admin-item-name {
+  font-weight: 500;
+  color: #4e342e;
+}
+.admin-item-qty, .admin-item-price {
+  color: #6d4c41;
+}
+.admin-order-total {
+  font-weight: 600;
+  color: #388e3c;
+  margin-bottom: 2px;
+}
+.admin-order-status {
+  font-size: 0.97rem;
+  color: #1976d2;
+}
+
+@media (max-width: 900px) {
+  .admin-orders-list {
+    flex-direction: column;
+    align-items: center;
+  }
+  .admin-order-card {
+    min-width: 90vw;
+    max-width: 98vw;
+  }
+}

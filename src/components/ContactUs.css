@@ -1,0 +1,110 @@
+/* ContactUs.css */
+@import url('https://fonts.googleapis.com/css2?family=Luxurious+Script&display=swap');
+
+.contact-container {
+  max-width: 1000px;
+    margin: 200px auto 96px auto; /* Adjusted for Header height */
+  justify-content: center;
+  padding: 3rem;
+  background: none;
+  font-family: 'Poppins', "LuxuriousScript-Regular", sans-serif;
+}
+
+.contact-title {
+  font-family: 'LuxuriousScript-Regular','sans-serif';
+  font-size: 2.5rem;
+  color: #3e2723;
+  margin-bottom: 1rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+
+
+.contact-description {
+  font-size: 1.1rem;
+  color: #5e4a42;
+  margin-bottom: 2.5rem;
+  margin-top: 30px;;
+  text-align: center;
+  line-height: 1.8;
+}
+
+.contact-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.form-group-1{
+  display: flex;
+  flex-direction:column;
+  width: 100%;
+}
+
+.form-group-1-parent {
+  display: flex;
+  flex-direction: row;
+  gap: 2rem;
+  width: 100%;
+  justify-content:space-evenly
+}
+
+
+
+.form-group-2 {
+  display: flex;
+  flex-direction: column;
+}
+
+label {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: #3e2723;
+}
+
+input,
+textarea {
+  padding: 0.75rem 1rem;
+  border: 1px solid #c4b7ad;
+  border-radius: 5px;
+  padding-top: 25px;
+  font-size: 1rem;
+  background: #fff;
+  color: #3e2723;
+  outline: none;
+  transition: border 0.3s ease;
+}
+
+input:focus,
+textarea:focus {
+  border-color: #a1887f;
+}
+
+.contact-button {
+  display: flex;
+  justify-content: center;
+  padding: 1.5rem 2.5rem;
+  background-color: #3e2723;
+  color: #fff;
+  border-radius: 5px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  width: 30%;
+
+  transition: background-color 0.3s ease;
+}
+
+.contact-button:hover {
+  background-color: #5d4037;
+}
+
+.thank-you-message {
+  padding: 2rem;
+  background-color: #f3f3f3;
+  border-radius: 12px;
+  text-align: center;
+  color: #3e2723;
+  margin-top: 2rem;
+}
