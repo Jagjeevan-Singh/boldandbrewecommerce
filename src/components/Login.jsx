@@ -41,7 +41,6 @@ function Login() {
   };
 
   return (
-    <div className="login-bg">
       <div className="login-main-box">
         <div className="login-form-col">
           {user ? (
@@ -99,7 +98,6 @@ function Login() {
           <button className="btn register-btn" onClick={() => navigate('/register')}>Create an Account</button>
         </div>
       </div>
-    </div>
   );
 }
 

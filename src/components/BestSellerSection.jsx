@@ -70,7 +70,7 @@ export default function BestSellerSection({ onAdd, onWishlist, products = [] }) 
     <section className="best-seller-section">
       <div className="best-seller-content">
         <h2 className="best-seller-title">
-          <span role="img" aria-label="star">🌟</span> Best Sellers <span role="img" aria-label="star">🌟</span>
+          <span role="img" aria-label="star"></span> Best  Sellers <span role="img" aria-label="star"></span>
         </h2>
   <div className="best-seller-grid" ref={gridRef}>
           {bestSellers.map((p, i) => {

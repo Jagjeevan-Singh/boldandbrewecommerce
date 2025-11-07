@@ -51,50 +51,79 @@ const Checkout = ({ cartItems = [], total = 0 }) => {
       return;
     }
 
-    // Razorpay payment integration
-    const options = {
-      key: "RAZORPAY_KEY_ID", // TODO: Replace with your Razorpay key after deployment
-      amount: total * 100, // Amount in paise
-      currency: "INR",
-      name: "Bold & Brew",
-      description: "Order Payment",
-      handler: async function (response) {
-        // Save order to Firestore on payment success
-        try {
-          await addDoc(collection(db, 'orders'), {
-            userId: user.uid,
-            items: cartItems,
-            date: serverTimestamp(),
-            total,
-            status: 'completed',
-            shipping: form,
-            razorpayPaymentId: response.razorpay_payment_id
-          });
-          // Save address for future if checked (to Firestore)
-          if (form.saveForFuture) {
-            await setDoc(doc(db, 'users', user.uid), { address: form }, { merge: true });
+    // Create payment preference through proxy
+    try {
+      const prefRes = await fetch('http://localhost:3000/api/razorpay/preferences', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          key: "rzp_test_placeholder", // This will be replaced by the proxy
+          amount: total * 100, // amount in paise
+          currency: "INR",
+          notes: {
+            description: "Bold & Brew Coffee Order"
           }
-          navigate('/order-confirmation');
-        } catch (err) {
-          alert('Order placed but failed to save in database. Please contact support.');
-          console.error(err);
-        }
-      },
-      prefill: {
-        name: form.fullName,
-        email: form.email
-      },
-      theme: {
-        color: "#b9805a"
+        })
+      });
+      
+      if (!prefRes.ok) {
+        const error = await prefRes.json();
+        throw new Error(error.error?.message || 'Failed to create payment preference');
       }
-    };
+      
+      const preference = await prefRes.json();
+      
+      if (!window.Razorpay) {
+        throw new Error('Razorpay SDK not loaded. Please check your internet connection.');
+      }
 
-    if (!window.Razorpay) {
-      alert('Razorpay SDK not loaded. Please check your internet connection.');
-      return;
+      // Create Razorpay instance with preferences
+      const options = {
+        ...preference, // Use all settings from preference response
+        name: "Bold & Brew",
+        description: "Coffee Order Payment",
+        prefill: {
+          name: form.fullName,
+          email: form.email
+        },
+        theme: {
+          color: "#b9805a"
+        },
+        handler: async function (response) {
+          try {
+            // Save order to Firestore on payment success
+            await addDoc(collection(db, 'orders'), {
+              userId: user.uid,
+              items: cartItems,
+              date: serverTimestamp(),
+              total,
+              status: 'completed',
+              shipping: form,
+              razorpayPaymentId: response.razorpay_payment_id,
+              razorpayOrderId: response.razorpay_order_id
+            });
+
+            // Save address if user opted to
+            if (form.saveForFuture) {
+              await setDoc(doc(db, 'users', user.uid), { 
+                address: form 
+              }, { merge: true });
+            }
+
+            navigate('/order-confirmation');
+          } catch (err) {
+            console.error('Failed to save order:', err);
+            alert('Payment successful but order failed to save. Please contact support with your Razorpay payment ID: ' + response.razorpay_payment_id);
+          }
+        }
+      };
+
+      const rzp = new window.Razorpay(options);
+      rzp.open();
+    } catch (err) {
+      console.error('Payment initialization failed:', err);
+      alert(err.message || 'Failed to initialize payment. Please try again.');
     }
-    const rzp = new window.Razorpay(options);
-    rzp.open();
   };
 
   return (
