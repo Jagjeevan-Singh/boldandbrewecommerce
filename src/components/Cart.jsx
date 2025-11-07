@@ -16,11 +16,23 @@ import { useNavigate } from 'react-router-dom';
 import './Cart.css';
 import ProductRating from './ProductRating';
 
-function Cart({ cartItems = [], onRemove, onUpdateQuantity, onMoveToWishlist, onApplyCoupon, coupon, setCoupon, couponError, discount = 0, subtotal, discountedTotal, onCheckout }) {
+function Cart({
+  cartItems = [],
+  onRemove,
+  onUpdateQuantity,
+  onMoveToWishlist,
+  onApplyCoupon,
+  coupon,
+  setCoupon,
+  couponError,
+  discount = 0,
+  subtotal,
+  discountedTotal,
+}) {
   const navigate = useNavigate();
 
-  // Patch: Synthesize mainImage for items that only have 'image' (from best seller)
-  const normalizedCartItems = cartItems.map(item => {
+  // Normalize cart items for image compatibility
+  const normalizedCartItems = cartItems.map((item) => {
     if (!item.mainImage && item.image) {
       return {
         ...item,
@@ -30,6 +42,9 @@ function Cart({ cartItems = [], onRemove, onUpdateQuantity, onMoveToWishlist, on
     }
     return item;
   });
+
+  // ✅ Compute safe numeric total for passing forward
+  const safeTotal = Number((Math.max(discountedTotal ?? subtotal ?? 0, 0)).toFixed(2));
 
   return (
     <div className="cart-page-pro">
@@ -48,35 +63,105 @@ function Cart({ cartItems = [], onRemove, onUpdateQuantity, onMoveToWishlist, on
                     alt={item.name}
                     className="cart-item-img-pro"
                     style={{ cursor: 'pointer', opacity: outOfStock ? 0.6 : 1 }}
-                    onClick={() => navigate(`/product/${item.id}`, { state: { product: item } })}
+                    onClick={() =>
+                      navigate(`/product/${item.id}`, { state: { product: item } })
+                    }
                   />
                   <div className="cart-item-details-pro">
                     <div
                       className="cart-item-title-pro"
-                      style={{ cursor: 'pointer', color: '#7c5a3a', textDecoration: 'underline', opacity: outOfStock ? 0.7 : 1 }}
-                      onClick={() => navigate(`/product/${item.id}`, { state: { product: item } })}
+                      style={{
+                        cursor: 'pointer',
+                        color: '#7c5a3a',
+                        textDecoration: 'underline',
+                        opacity: outOfStock ? 0.7 : 1,
+                      }}
+                      onClick={() =>
+                        navigate(`/product/${item.id}`, { state: { product: item } })
+                      }
                     >
                       {item.name}
-                       <ProductRating productId={item.id} />
+                      <ProductRating productId={item.id} />
                     </div>
                     <div className="cart-item-brand-pro">{item.brand}</div>
                     <div className="cart-item-price-pro">
-                      <span style={{ fontWeight: 'bold', color: '#4a3c35', fontSize: '1.1em' }}>₹{item.price}</span>
+                      <span
+                        style={{
+                          fontWeight: 'bold',
+                          color: '#4a3c35',
+                          fontSize: '1.1em',
+                        }}
+                      >
+                        ₹{item.price}
+                      </span>
                       {item.originalPrice && item.originalPrice > item.price && (
-                        <span style={{ textDecoration: 'line-through', color: '#b19d8e', marginLeft: 8, fontSize: '0.98em' }}>
+                        <span
+                          style={{
+                            textDecoration: 'line-through',
+                            color: '#b19d8e',
+                            marginLeft: 8,
+                            fontSize: '0.98em',
+                          }}
+                        >
                           ₹{item.originalPrice}
                         </span>
                       )}
                     </div>
-                    {outOfStock && <div className="out-of-stock-badge" style={{position:'static',margin:'6px 0',display:'inline-block',background:'#b71c1c',color:'#fff',fontWeight:700,fontSize:'1em',padding:'4px 14px',borderRadius:'8px',letterSpacing:'0.5px',boxShadow:'0 2px 8px #bcae9e33',zIndex:2,textAlign:'center'}}>Out of Stock</div>}
+
+                    {outOfStock && (
+                      <div
+                        className="out-of-stock-badge"
+                        style={{
+                          position: 'static',
+                          margin: '6px 0',
+                          display: 'inline-block',
+                          background: '#b71c1c',
+                          color: '#fff',
+                          fontWeight: 700,
+                          fontSize: '1em',
+                          padding: '4px 14px',
+                          borderRadius: '8px',
+                          letterSpacing: '0.5px',
+                          boxShadow: '0 2px 8px #bcae9e33',
+                          zIndex: 2,
+                          textAlign: 'center',
+                        }}
+                      >
+                        Out of Stock
+                      </div>
+                    )}
+
                     <div className="cart-item-qty-pro">
-                      <button onClick={() => onUpdateQuantity(item.id, item.quantity - 1)} disabled={item.quantity <= 1 || outOfStock}>-</button>
+                      <button
+                        onClick={() => onUpdateQuantity(item.id, item.quantity - 1)}
+                        disabled={item.quantity <= 1 || outOfStock}
+                      >
+                        -
+                      </button>
                       <span>{item.quantity}</span>
-                      <button onClick={() => onUpdateQuantity(item.id, item.quantity + 1)} disabled={outOfStock}>+</button>
+                      <button
+                        onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}
+                        disabled={outOfStock}
+                      >
+                        +
+                      </button>
                     </div>
+
                     <div className="cart-item-actions-pro">
-                      <button className="move-wishlist-pro" onClick={() => onMoveToWishlist(item)} disabled={outOfStock} style={outOfStock ? {opacity:0.6, cursor:'not-allowed'} : {}}><FaHeart /> Move to Wishlist</button>
-                      <button className="remove-item-pro" onClick={() => onRemove(item.id)}><FaTrashAlt /> Remove</button>
+                      <button
+                        className="move-wishlist-pro"
+                        onClick={() => onMoveToWishlist(item)}
+                        disabled={outOfStock}
+                        style={outOfStock ? { opacity: 0.6, cursor: 'not-allowed' } : {}}
+                      >
+                        <FaHeart /> Move to Wishlist
+                      </button>
+                      <button
+                        className="remove-item-pro"
+                        onClick={() => onRemove(item.id)}
+                      >
+                        <FaTrashAlt /> Remove
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -85,6 +170,7 @@ function Cart({ cartItems = [], onRemove, onUpdateQuantity, onMoveToWishlist, on
           </div>
         )}
       </div>
+
       <div className="cart-pro-right">
         <div className="cart-summary-box-pro">
           <h3>Order Summary</h3>
@@ -92,41 +178,74 @@ function Cart({ cartItems = [], onRemove, onUpdateQuantity, onMoveToWishlist, on
             <span>Subtotal</span>
             <span>₹{subtotal}</span>
           </div>
+
           {discount > 0 && (
             <div className="cart-summary-row-pro">
-              <span style={{color:'#2e7d32',fontWeight:600}}>Discount</span>
-              <span style={{color:'#2e7d32',fontWeight:600}}>-₹{discount.toFixed(2)}</span>
+              <span style={{ color: '#2e7d32', fontWeight: 600 }}>Discount</span>
+              <span style={{ color: '#2e7d32', fontWeight: 600 }}>
+                -₹{discount.toFixed(2)}
+              </span>
             </div>
           )}
+
           <div className="cart-summary-row-pro">
             <span>Shipping</span>
             <span>Free</span>
           </div>
+
           <div className="cart-summary-row-pro coupon-row-pro">
-            <label htmlFor="cart-coupon" className="visually-hidden">Coupon code</label>
+            <label htmlFor="cart-coupon" className="visually-hidden">
+              Coupon code
+            </label>
             <input
               id="cart-coupon"
               name="coupon"
               type="text"
               placeholder="Coupon code"
               value={coupon}
-              onChange={e => setCoupon(e.target.value)}
+              onChange={(e) => setCoupon(e.target.value)}
               className="cart-coupon-input-pro"
               autoComplete="off"
             />
-            <button className="apply-coupon-btn-pro" onClick={onApplyCoupon}>Apply</button>
+            <button className="apply-coupon-btn-pro" onClick={onApplyCoupon}>
+              Apply
+            </button>
           </div>
+
           {couponError && <div className="cart-coupon-error-pro">{couponError}</div>}
+
           <div className="cart-summary-total-pro">
             <span>Total</span>
-            <span>₹{discountedTotal}</span>
+            <span>₹{safeTotal}</span>
           </div>
-          <button className="checkout-btn-pro" onClick={onCheckout} disabled={cartItems.length === 0 || normalizedCartItems.some(item => item.stock === 0)}>
-            Checkout
+
+          {/* ✅ Proceed to Checkout (correct amount passed) */}
+          <button
+            className="checkout-btn-pro"
+            onClick={() =>
+              navigate('/checkout-page', {
+                state: { total: safeTotal, cartItems: normalizedCartItems },
+              })
+            }
+            disabled={
+              normalizedCartItems.length === 0 ||
+              normalizedCartItems.some((item) => item.stock === 0)
+            }
+          >
+            Proceed to Checkout
           </button>
-          {normalizedCartItems.some(item => item.stock === 0) && (
-            <div style={{color:'#b71c1c',fontWeight:600,marginTop:'8px',fontSize:'1em',textAlign:'center'}}>
-              Please remove out of stock products to proceed to checkout.
+
+          {normalizedCartItems.some((item) => item.stock === 0) && (
+            <div
+              style={{
+                color: '#b71c1c',
+                fontWeight: 600,
+                marginTop: '8px',
+                fontSize: '1em',
+                textAlign: 'center',
+              }}
+            >
+              Please remove out-of-stock products to proceed to checkout.
             </div>
           )}
         </div>

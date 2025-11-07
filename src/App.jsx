@@ -1,13 +1,20 @@
 import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { getFirestore, doc, getDoc, collection, onSnapshot, query, where, getDocs } from 'firebase/firestore';
 
 import Layout from './components/Layout';
+import CheckoutPage from "./components/CheckoutPage";
+import PaymentPage from "./components/PaymentPage";
+import OrderConfirmed from "./components/OrderConfirmed";
+import OrdersPageg from "./components/OrdersPageg";
+import OrderDetails from "./components/OrderDetails";
+import MyAccount from "./components/MyAccount";
 
 import Banner from './components/Banner';
 import BestSellerSection from './components/BestSellerSection';
 import ProductList from './components/ProductList';
-import ProductLanding from './components/ProductLanding';
-import ProductsPage from './components/ProductsPage';
+import RecipeSection from './components/RecipeSection';
 import Cart from './components/Cart';
 import Wishlist from './components/Wishlist';
 import About from './components/About';
@@ -16,7 +23,6 @@ import Terms from './components/Terms';
 import PrivacyPolicy from './components/PrivacyPolicy';
 import ReturnPolicy from './components/ReturnPolicy';
 import ReturnCancelPolicy from './components/ReturnCancelPolicy';
-import RecipeSection from './components/RecipeSection';
 import RecipePage from './components/RecipePage';
 import AdminLogin from './components/AdminLogin';
 import Login from './components/Login';
@@ -26,21 +32,15 @@ import AdminMain from './components/AdminMain';
 import ContactUs from './components/ContactUs.jsx';
 import OrdersPage from './components/OrdersPage';
 import ShippingPolicy from './components/ShippingPolicy';
-import { getAuth, onAuthStateChanged } from 'firebase/auth';
-import { getFirestore, doc, getDoc, collection, onSnapshot, query, where, getDocs } from 'firebase/firestore';
+
 import './App.css';
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
-import espressoImg from './assets/espresso.jpg';
-import cappuccinoImg from './assets/cappuccino.jpg';
-import latteImg from './assets/latte.jpg';
-import VanillaImg from './assets/Vanilla.jpg';
-import HazelnutImg from './assets/Hazelnut.jpg';
-import PureImg from './assets/100instant.jpg';
-import StrongImg from './assets/7030instant.jpg';
 import logo from './assets/logo.png';
+
 import DotGrid from './blocks/Backgrounds/DotGrid/DotGrid.jsx';
 import { CircularText } from './blocks/TextAnimations/CircularText/CircularText.jsx';
+
 const auth = getAuth();
 const db = getFirestore();
 
@@ -53,7 +53,6 @@ const ProtectedAdminRoute = ({ children }) => {
       if (authUser) {
         const userDocRef = doc(db, 'users', authUser.uid);
         const userDoc = await getDoc(userDocRef);
-
         if (userDoc.exists() && userDoc.data().role === 'owner') {
           setUserRole('owner');
         } else {
@@ -68,13 +67,10 @@ const ProtectedAdminRoute = ({ children }) => {
     return () => unsubscribe();
   }, []);
 
-  if (loading) {
-    return <div>Loading...</div>;
-  }
+  if (loading) return <div>Loading...</div>;
 
   return userRole === 'owner' ? children : <Navigate to="/admin-login" />;
 };
-
 
 function App() {
   const [cartItems, setCartItems] = useState([]);
@@ -84,21 +80,22 @@ function App() {
   const [loadingUser, setLoadingUser] = useState(true);
   const [animationDone, setAnimationDone] = useState(false);
   const [appSearchTerm, setAppSearchTerm] = useState('');
-  window.setAppSearchTerm = setAppSearchTerm;
   const [products, setProducts] = useState([]);
-  // Coupon logic
   const [coupon, setCoupon] = useState("");
   const [discount, setDiscount] = useState(0);
   const [couponError, setCouponError] = useState("");
 
+  window.setAppSearchTerm = setAppSearchTerm;
+
   const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const discountedTotal = Math.max(subtotal - discount, 0);
 
-  // Helper to fetch and validate coupon
+  // ✅ Coupon handling
   const fetchAndApplyCoupon = async (code, currentSubtotal) => {
     setCouponError("");
     setDiscount(0);
     if (!code) return;
+
     const trimmed = code.trim().toUpperCase();
     const q = query(
       collection(db, "coupons"),
@@ -106,17 +103,18 @@ function App() {
       where("active", "==", true)
     );
     const snap = await getDocs(q);
+
     if (snap.empty) {
       setCouponError("Invalid or expired coupon.");
-      setDiscount(0);
       return;
     }
+
     const couponDoc = snap.docs[0].data();
     if (couponDoc.expiry && couponDoc.expiry.toDate() < new Date()) {
       setCouponError("Coupon expired.");
-      setDiscount(0);
       return;
     }
+
     if (couponDoc.discountType === "percent") {
       setDiscount((currentSubtotal * couponDoc.discountValue) / 100);
     } else {
@@ -128,7 +126,6 @@ function App() {
     await fetchAndApplyCoupon(coupon, subtotal);
   };
 
-  // Recalculate discount if cart or coupon changes and coupon is set
   useEffect(() => {
     if (coupon) {
       fetchAndApplyCoupon(coupon, subtotal);
@@ -136,16 +133,14 @@ function App() {
       setDiscount(0);
       setCouponError("");
     }
-    // eslint-disable-next-line
   }, [subtotal]);
 
-  // Live Firestore product sync
+  // ✅ Sync products and live stock updates
   useEffect(() => {
     const unsub = onSnapshot(collection(db, 'products'), (querySnap) => {
       const items = querySnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       setProducts(items);
 
-      // Sync cart and wishlist with latest stock info
       setCartItems(prev => prev.map(item => {
         const live = items.find(p => p.id === item.id);
         return live ? { ...item, stock: live.stock } : item;
@@ -158,6 +153,7 @@ function App() {
     return () => unsub();
   }, []);
 
+  // ✅ Load cart/wishlist from localStorage
   useEffect(() => {
     const savedCart = localStorage.getItem('cart');
     const savedWishlist = localStorage.getItem('wishlist');
@@ -165,14 +161,11 @@ function App() {
     if (savedWishlist) setWishlistItems(JSON.parse(savedWishlist));
   }, []);
 
-  useEffect(() => {
-    localStorage.setItem('cart', JSON.stringify(cartItems));
-  }, [cartItems]);
+  // ✅ Save cart/wishlist on update
+  useEffect(() => localStorage.setItem('cart', JSON.stringify(cartItems)), [cartItems]);
+  useEffect(() => localStorage.setItem('wishlist', JSON.stringify(wishlistItems)), [wishlistItems]);
 
-  useEffect(() => {
-    localStorage.setItem('wishlist', JSON.stringify(wishlistItems));
-  }, [wishlistItems]);
-
+  // ✅ Auth state listener
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
@@ -189,13 +182,13 @@ function App() {
     return () => unsubscribe();
   }, []);
 
+  // ✅ Logo animation delay
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setAnimationDone(true);
-    }, 3100);
+    const timer = setTimeout(() => setAnimationDone(true), 3100);
     return () => clearTimeout(timer);
   }, []);
 
+  // ✅ Cart & Wishlist handlers
   const addToCart = (product) => {
     setCartItems((prev) => {
       const existing = prev.find((item) => item.id === product.id);
@@ -217,12 +210,8 @@ function App() {
     }
   };
 
-  const removeFromCart = (id) => {
-    setCartItems((prev) => prev.filter((item) => item.id !== id));
-  };
+  const removeFromCart = (id) => setCartItems((prev) => prev.filter((item) => item.id !== id));
 
-
-  // Toggle isWishlisted on product and update wishlist
   const handleWishlistToggle = (product) => {
     setProducts(prev =>
       prev.map(p =>
@@ -234,10 +223,8 @@ function App() {
     setWishlistItems(prev => {
       const exists = prev.find(item => item.id === product.id);
       if (exists) {
-        // Remove from wishlist
         return prev.filter(item => item.id !== product.id);
       } else {
-        // Add to wishlist
         return [...prev, { ...product, isWishlisted: true }];
       }
     });
@@ -245,7 +232,7 @@ function App() {
 
   const moveToWishlist = (product) => {
     removeFromCart(product.id);
-    addToWishlist(product);
+    handleWishlistToggle(product);
   };
 
   const removeFromWishlist = (id) => {
@@ -259,22 +246,15 @@ function App() {
 
   const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
-  console.log('Cart Items:', cartItems);
-  console.log('Wishlist Items:', wishlistItems);
-
-  if (loadingUser) {
-    return <div>Loading...</div>;
-  }
+  if (loadingUser) return <div>Loading...</div>;
 
   return (
     <>
-      {/* Logo animation before app loads */}
       {!animationDone && (
         <div id="logo-anim-container" style={{ position: 'fixed', inset: 0, zIndex: 1 }}>
           <img id="logo-anim" src={logo} alt="Bold & Brew Logo" />
         </div>
       )}
-      {/* Main App Content Layer */}
       <div
         className="app-container"
         style={{
@@ -284,10 +264,22 @@ function App() {
           zIndex: 1,
         }}
       >
-  {/* Background Layer moved to Layout */}
         <Router>
           <Routes>
-            {/* Cart Page */}
+            {/* Home Page */}
+            <Route
+              path="/"
+              element={
+                <Layout cartCount={cartCount} wishlistCount={wishlistItems.length}>
+                  <Banner />
+                  <BestSellerSection onAdd={addToCart} onWishlist={handleWishlistToggle} products={products} />
+                  <ProductList products={products} onAdd={addToCart} onWishlist={handleWishlistToggle} />
+                  <RecipeSection />
+                </Layout>
+              }
+            />
+
+            {/* Cart & Auth Pages */}
             <Route
               path="/cart"
               element={
@@ -304,174 +296,27 @@ function App() {
                     discount={discount}
                     subtotal={subtotal}
                     discountedTotal={discountedTotal}
-                    onCheckout={() => window.location.hash = '#/checkout'}
                   />
                 </Layout>
               }
             />
-            <Route
-              path="/checkout"
-              element={
-                <Layout cartCount={cartCount} wishlistCount={wishlistItems.length}>
-                  <Checkout cartItems={cartItems} total={cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0)} />
-                </Layout>
-              }
-            />
-            {/* Login Route */}
-            <Route path="/login" element={
-                <Layout cartCount={cartCount} wishlistCount={wishlistItems.length}>
-                  <Login />
-                </Layout>
-            } />
-            {/* Register Route */}
-            <Route path="/register" element={
-              <Layout cartCount={cartCount} wishlistCount={wishlistItems.length}>
-                <Register />
-              </Layout>
-            } />
-            {/* Forgot Password Route */}
-            <Route path="/forgot-password" element={
-              <Layout cartCount={cartCount} wishlistCount={wishlistItems.length}>
-                <ForgotPassword />
-              </Layout>
-            } />
-            {/* Admin Routes */}
+            <Route path="/login" element={<Layout><Login /></Layout>} />
+            <Route path="/register" element={<Layout><Register /></Layout>} />
+            <Route path="/forgot-password" element={<Layout><ForgotPassword /></Layout>} />
+
+            {/* Checkout Flow */}
+            <Route path="/checkout-page" element={<Layout><CheckoutPage /></Layout>} />
+            <Route path="/payment" element={<Layout><PaymentPage /></Layout>} />
+            <Route path="/order-confirmed" element={<Layout><OrderConfirmed /></Layout>} />
+
+            {/* Orders & Account */}
+            <Route path="/orders-list" element={<Layout><OrdersPageg /></Layout>} />
+            <Route path="/orders/:id" element={<Layout><OrderDetails /></Layout>} />
+            <Route path="/account" element={<Layout><MyAccount /></Layout>} />
+
+            {/* Admin */}
             <Route path="/admin-login" element={<AdminLogin />} />
-            <Route
-              path="/admin/*"
-              element={
-                <ProtectedAdminRoute>
-                  <AdminMain />
-                </ProtectedAdminRoute>
-              }
-            />
-            {/* Home Page */}
-            <Route
-              path="/"
-              element={
-                <Layout cartCount={cartCount} wishlistCount={wishlistItems.length}>
-                  <Banner />
-                  <BestSellerSection onAdd={addToCart} onWishlist={handleWishlistToggle} products={products} />
-                  <ProductList
-                    products={products} // always show all products on home
-                    onAdd={addToCart}
-                    onWishlist={handleWishlistToggle}
-                  />
-                  <RecipeSection />
-                </Layout>
-              }
-            />
-            {/* Other Pages */}
-            <Route
-              path="/products"
-              element={
-                <Layout cartCount={cartCount} wishlistCount={wishlistItems.length}>
-                  <ProductsPage
-                    products={products}
-                    onAdd={addToCart}
-                    onWishlist={handleWishlistToggle}
-                    searchTerm={appSearchTerm}
-                    setSearchTerm={setAppSearchTerm}
-                  />
-                </Layout>
-              }
-            />
-            <Route
-              path="/product/:id"
-              element={
-                <Layout cartCount={cartCount} wishlistCount={wishlistItems.length}>
-                  <ProductLanding
-                    products={products}
-                    onAddToCart={addToCart}
-                    onAddToWishlist={handleWishlistToggle}
-                  />
-                </Layout>
-              }
-            />
-            <Route
-              path="/wishlist"
-              element={
-                <Layout cartCount={cartCount} wishlistCount={wishlistItems.length}>
-                  <Wishlist
-                    items={wishlistItems}
-                    onRemove={removeFromWishlist}
-                    onMoveToCart={moveToCart}
-                  />
-                </Layout>
-              }
-            />
-            <Route
-              path="/recipe/:type"
-              element={
-                <Layout cartCount={cartCount} wishlistCount={wishlistItems.length}>
-                  <RecipePage />
-                </Layout>
-              }
-            />
-            <Route
-              path="/about"
-              element={
-                <Layout cartCount={cartCount} wishlistCount={wishlistItems.length}>
-                  <About />
-                </Layout>
-              }
-            />
-            <Route
-              path="/contact"
-              element={
-                <Layout cartCount={cartCount} wishlistCount={wishlistItems.length}>
-                  <ContactUs />
-                </Layout>
-              }
-            />
-            <Route
-              path="/terms"
-              element={
-                <Layout cartCount={cartCount} wishlistCount={wishlistItems.length}>
-                  <Terms />
-                </Layout>
-              }
-            />
-            <Route
-              path="/privacy"
-              element={
-                <Layout cartCount={cartCount} wishlistCount={wishlistItems.length}>
-                  <PrivacyPolicy />
-                </Layout>
-              }
-            />
-            <Route
-              path="/return-policy"
-              element={
-                <Layout cartCount={cartCount} wishlistCount={wishlistItems.length}>
-                  <ReturnPolicy />
-                </Layout>
-              }
-            />
-            <Route
-              path="/return-cancel-policy"
-              element={
-                <Layout cartCount={cartCount} wishlistCount={wishlistItems.length}>
-                  <ReturnCancelPolicy />
-                </Layout>
-              }
-            />
-            <Route
-              path="/shipping-policy"
-              element={
-                <Layout cartCount={cartCount} wishlistCount={wishlistItems.length}>
-                  <ShippingPolicy />
-                </Layout>
-              }
-            />
-            <Route
-              path="/orders"
-              element={
-                <Layout cartCount={cartCount} wishlistCount={wishlistItems.length}>
-                  <OrdersPage />
-                </Layout>
-              }
-            />
+            <Route path="/admin/*" element={<ProtectedAdminRoute><AdminMain /></ProtectedAdminRoute>} />
           </Routes>
         </Router>
       </div>
