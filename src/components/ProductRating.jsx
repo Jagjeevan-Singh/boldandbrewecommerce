@@ -11,16 +11,27 @@ function ProductRating({ productId }) {
   useEffect(() => {
     if (!productId) return;
     const q = query(collection(db, 'reviews'), where('productId', '==', productId));
-    const unsub = onSnapshot(q, (snap) => {
-      const ratings = snap.docs.map(doc => doc.data().rating).filter(r => typeof r === 'number');
-      if (ratings.length) {
-        setAvg(ratings.reduce((a, b) => a + b, 0) / ratings.length);
-        setCount(ratings.length);
-      } else {
+    // attach an error handler so permission errors don't throw uncaught internal errors
+    const unsub = onSnapshot(
+      q,
+      (snap) => {
+        const ratings = snap.docs.map(doc => doc.data().rating).filter(r => typeof r === 'number');
+        if (ratings.length) {
+          setAvg(ratings.reduce((a, b) => a + b, 0) / ratings.length);
+          setCount(ratings.length);
+        } else {
+          setAvg(null);
+          setCount(0);
+        }
+      },
+      (error) => {
+        // eslint-disable-next-line no-console
+        console.warn('ProductRating onSnapshot error:', error);
+        // reset values on error (e.g., permission-denied) to keep UI stable
         setAvg(null);
         setCount(0);
       }
-    });
+    );
     return () => unsub();
   }, [productId]);
 
