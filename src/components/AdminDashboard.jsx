@@ -6,7 +6,8 @@ import { db } from "../firebase";
 import "./AdminDashboard.css";
 
 // Import all images in assets at build time (Vite)
-const images = import.meta.glob('../assets/*', { eager: true, as: 'url' });
+// Updated to new Vite API
+const images = import.meta.glob('../assets/*', { eager: true, query: '?url', import: 'default' });
 
 function ProductImage({ src, alt }) {
   if (src && !src.startsWith('http')) {

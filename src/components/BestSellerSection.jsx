@@ -4,7 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import './BestSellerSection.css';
 
 // Vite: import all images in assets at build time
-const images = import.meta.glob('../assets/*', { eager: true, as: 'url' });
+// Updated to new Vite API
+const images = import.meta.glob('../assets/*', { eager: true, query: '?url', import: 'default' });
 
 function ProductImage({ src, alt, ...props }) {
   if (src && !src.startsWith('http')) {
