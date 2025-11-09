@@ -347,7 +347,6 @@ function App() {
             <Route path="/account" element={<Layout><MyAccount /></Layout>} />
 
             {/* Admin */}
->>>>>>> Stashed changes
             <Route path="/admin-login" element={<AdminLogin />} />
             <Route path="/admin/*" element={<ProtectedAdminRoute><AdminMain /></ProtectedAdminRoute>} />
           </Routes>
