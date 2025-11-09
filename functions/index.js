@@ -116,3 +116,52 @@ exports.verifyRazorpayPayment = functions.https.onRequest((req, res) => {
   }
   });
 });
+
+// --------------------------------------------------------------------------------
+// FUNCTION 3: CREATE STANDARD CHECKOUT PREFERENCE (proxy)
+// Frontend should NOT call api.razorpay.com directly; this forwards the request
+// server-side using the secret key stored in functions.config().razorpay
+// --------------------------------------------------------------------------------
+exports.createRazorpayPreference = functions.https.onRequest((req, res) => {
+  cors(req, res, async () => {
+    if (req.method === 'OPTIONS') {
+      res.status(204).send('');
+      return;
+    }
+    if (req.method !== 'POST') {
+      return res.status(405).send('Method Not Allowed');
+    }
+
+    const key_id = functions.config().razorpay.key_id;
+    const key_secret = functions.config().razorpay.key_secret;
+    if (!key_id || !key_secret) {
+      return res.status(500).json({ error: 'Razorpay keys not configured' });
+    }
+
+    try {
+      const payload = req.body || {};
+      // Build Basic Auth header
+      const auth = Buffer.from(`${key_id}:${key_secret}`).toString('base64');
+
+      // Call Razorpay Standard Checkout Preferences API
+      const rr = await fetch('https://api.razorpay.com/v1/standard_checkout/preferences', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Basic ${auth}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await rr.json().catch(() => ({}));
+      if (!rr.ok) {
+        return res.status(rr.status).json({ error: data });
+      }
+
+      return res.status(200).json(data);
+    } catch (err) {
+      console.error('Error forwarding preference to Razorpay:', err);
+      return res.status(500).json({ error: 'internal_server_error' });
+    }
+  });
+});
