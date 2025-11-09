@@ -7,11 +7,13 @@ export default defineConfig({
   server: {
     port: 5173,
     proxy: {
-      // Proxy API requests to the local Razorpay proxy server (server/server.js)
+      // Proxy API requests to Firebase Functions emulator or deployed functions.
+      // Frontend should call /api/<functionName> and this proxy will forward to the functions host.
       '/api': {
-        target: 'http://localhost:3000',
+        target: 'http://localhost:5001/local-bandb/us-central1',
         changeOrigin: true,
-        secure: false
+        secure: false,
+        rewrite: (path) => path.replace(/^\/api/, '')
       }
     }
   }
