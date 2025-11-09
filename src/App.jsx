@@ -354,6 +354,18 @@ function App() {
             <Route path="/orders/:id" element={<Layout><OrderDetails /></Layout>} />
             <Route path="/account" element={<Layout><MyAccount /></Layout>} />
 
+            {/* Static / Policy / Info Pages */}
+            <Route path="/about" element={<Layout><About /></Layout>} />
+            <Route path="/terms" element={<Layout><Terms /></Layout>} />
+            <Route path="/privacy" element={<Layout><PrivacyPolicy /></Layout>} />
+            <Route path="/return-policy" element={<Layout><ReturnPolicy /></Layout>} />
+            <Route path="/return-cancel-policy" element={<Layout><ReturnCancelPolicy /></Layout>} />
+            <Route path="/shipping-policy" element={<Layout><ShippingPolicy /></Layout>} />
+            <Route path="/contact" element={<Layout><ContactUs /></Layout>} />
+
+            {/* Recipe detail pages (uses :type param e.g. /recipe/espresso) */}
+            <Route path="/recipe/:type" element={<Layout><RecipePage /></Layout>} />
+
             {/* Admin */}
             <Route path="/admin-login" element={<AdminLogin />} />
             <Route path="/admin/*" element={<ProtectedAdminRoute><AdminMain /></ProtectedAdminRoute>} />
