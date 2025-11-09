@@ -300,11 +300,43 @@ function App() {
                 </Layout>
               }
             />
-            <Route path="/login" element={<Layout><Login /></Layout>} />
-            <Route path="/register" element={<Layout><Register /></Layout>} />
-            <Route path="/forgot-password" element={<Layout><ForgotPassword /></Layout>} />
+            {/* NEW (Uses discountedTotal) - Checkout with final price */}
+            <Route
+              path="/checkout"
+              element={
+                <Layout cartCount={cartCount} wishlistCount={wishlistItems.length}>
+                  <Checkout cartItems={cartItems} total={discountedTotal} />
+                </Layout>
+              }
+            />
 
-            {/* Checkout Flow */}
+            {/* Auth Routes (wrapped with Layout for consistent header/footer) */}
+            <Route
+              path="/login"
+              element={
+                <Layout cartCount={cartCount} wishlistCount={wishlistItems.length}>
+                  <Login />
+                </Layout>
+              }
+            />
+            <Route
+              path="/register"
+              element={
+                <Layout cartCount={cartCount} wishlistCount={wishlistItems.length}>
+                  <Register />
+                </Layout>
+              }
+            />
+            <Route
+              path="/forgot-password"
+              element={
+                <Layout cartCount={cartCount} wishlistCount={wishlistItems.length}>
+                  <ForgotPassword />
+                </Layout>
+              }
+            />
+
+            {/* Preserve existing checkout flow pages (server-driven payment flow) */}
             <Route path="/checkout-page" element={<Layout><CheckoutPage /></Layout>} />
             <Route path="/payment" element={<Layout><PaymentPage /></Layout>} />
             <Route path="/order-confirmed" element={<Layout><OrderConfirmed /></Layout>} />
@@ -315,6 +347,7 @@ function App() {
             <Route path="/account" element={<Layout><MyAccount /></Layout>} />
 
             {/* Admin */}
+>>>>>>> Stashed changes
             <Route path="/admin-login" element={<AdminLogin />} />
             <Route path="/admin/*" element={<ProtectedAdminRoute><AdminMain /></ProtectedAdminRoute>} />
           </Routes>

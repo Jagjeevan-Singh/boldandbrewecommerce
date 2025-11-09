@@ -3,6 +3,14 @@ import { db, auth } from '../firebase';
 import { collection, addDoc, serverTimestamp, doc, getDoc, setDoc } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
 import './Checkout.css';
+import React, { useState, useEffect } from 'react';
+import { db, auth } from '../firebase';
+import { collection, addDoc, serverTimestamp, doc, getDoc, setDoc } from 'firebase/firestore';
+import { useNavigate } from 'react-router-dom';
+import './Checkout.css';
+
+// Ensure Razorpay SDK is loaded in public/index.html:
+// <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
 const Checkout = ({ cartItems = [], total = 0 }) => {
   const [form, setForm] = useState({
@@ -15,7 +23,9 @@ const Checkout = ({ cartItems = [], total = 0 }) => {
     saveForFuture: false
   });
 
-  // Fetch saved address for logged-in user from Firestore
+  const navigate = useNavigate();
+
+  // Fetch saved address on mount
   useEffect(() => {
     const fetchSavedAddress = async () => {
       const user = auth.currentUser;
@@ -26,13 +36,11 @@ const Checkout = ({ cartItems = [], total = 0 }) => {
           setForm(f => ({ ...f, ...userDoc.data().address }));
         }
       } catch (err) {
-        // Ignore errors
+        console.error('Error fetching saved address:', err);
       }
     };
     fetchSavedAddress();
   }, []);
-
-  const navigate = useNavigate();
 
   const handleChange = e => {
     const { name, value, type, checked } = e.target;
@@ -51,44 +59,47 @@ const Checkout = ({ cartItems = [], total = 0 }) => {
       return;
     }
 
-    // Create payment preference through proxy
+    if (!window.Razorpay) {
+      alert('Razorpay SDK not loaded. Please ensure the script tag is in your index.html.');
+      return;
+    }
+
+    // Create payment preference via server proxy (server handles Razorpay auth)
+    let preference;
     try {
-      const prefRes = await fetch('http://localhost:3000/api/razorpay/preferences', {
+      const res = await fetch('/api/razorpay/preferences', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          key: "rzp_test_placeholder", // This will be replaced by the proxy
-          amount: total * 100, // amount in paise
-          currency: "INR",
-          notes: {
-            description: "Bold & Brew Coffee Order"
-          }
+          amount: total * 100, // paise
+          currency: 'INR',
+          notes: { description: 'Bold & Brew Coffee Order' }
         })
       });
-      
-      if (!prefRes.ok) {
-        const error = await prefRes.json();
-        throw new Error(error.error?.message || 'Failed to create payment preference');
-      }
-      
-      const preference = await prefRes.json();
-      
-      if (!window.Razorpay) {
-        throw new Error('Razorpay SDK not loaded. Please check your internet connection.');
+
+      if (!res.ok) {
+        const errBody = await res.json().catch(() => ({}));
+        throw new Error(errBody.error?.message || 'Failed to create payment preference');
       }
 
-      // Create Razorpay instance with preferences
+      preference = await res.json();
+    } catch (err) {
+      console.error('Payment preference creation failed:', err);
+      alert('Failed to initiate payment. Please try again.');
+      return;
+    }
+
+    try {
+      // Build options using preference response and extra UI data
       const options = {
-        ...preference, // Use all settings from preference response
-        name: "Bold & Brew",
-        description: "Coffee Order Payment",
+        ...preference,
+        name: 'Bold & Brew',
+        description: 'Coffee Order Payment',
         prefill: {
           name: form.fullName,
           email: form.email
         },
-        theme: {
-          color: "#b9805a"
-        },
+        theme: { color: '#b9805a' },
         handler: async function (response) {
           try {
             // Save order to Firestore on payment success
@@ -105,12 +116,10 @@ const Checkout = ({ cartItems = [], total = 0 }) => {
 
             // Save address if user opted to
             if (form.saveForFuture) {
-              await setDoc(doc(db, 'users', user.uid), { 
-                address: form 
-              }, { merge: true });
+              await setDoc(doc(db, 'users', user.uid), { address: form }, { merge: true });
             }
 
-            navigate('/order-confirmation');
+            navigate('/order-confirmed');
           } catch (err) {
             console.error('Failed to save order:', err);
             alert('Payment successful but order failed to save. Please contact support with your Razorpay payment ID: ' + response.razorpay_payment_id);
@@ -187,7 +196,7 @@ const Checkout = ({ cartItems = [], total = 0 }) => {
           <span>Save this address for future checkout</span>
         </div>
         <button type="submit">
-          Save & Continue <span style={{fontSize:'1.3em',marginLeft:6}}>&#8594;</span>
+          Save & Continue <span style={{ fontSize: '1.3em', marginLeft: 6 }}>&#8594;</span>
         </button>
       </form>
     </div>
