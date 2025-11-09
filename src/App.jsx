@@ -18,7 +18,6 @@ import RecipeSection from './components/RecipeSection';
 import Cart from './components/Cart';
 import Wishlist from './components/Wishlist';
 import About from './components/About';
-import Checkout from './components/Checkout';
 import Terms from './components/Terms';
 import PrivacyPolicy from './components/PrivacyPolicy';
 import ReturnPolicy from './components/ReturnPolicy';
@@ -305,7 +304,7 @@ function App() {
               path="/checkout"
               element={
                 <Layout cartCount={cartCount} wishlistCount={wishlistItems.length}>
-                  <Checkout cartItems={cartItems} total={discountedTotal} />
+                  <CheckoutPage cartItems={cartItems} total={discountedTotal} />
                 </Layout>
               }
             />
