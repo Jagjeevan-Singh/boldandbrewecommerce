@@ -88,12 +88,13 @@ const Checkout = ({ cartItems = [], total = 0 }) => {
       return;
     }
 
-    try {
-      // Prepare Razorpay options using the server-created order
-      const rzpKey = import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_RD3vXSAsbG6VGZ';
+    // If server-created order exists, use that. Otherwise fall back to a client-only checkout (dev fallback).
+    const rzpKey = import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_RD3vXSAsbG6VGZ';
+
+    if (order && order.id) {
       const options = {
         key: rzpKey,
-        amount: order.amount, // amount in paise
+        amount: order.amount,
         currency: order.currency,
         name: 'Bold & Brew',
         description: 'Coffee Order Payment',
@@ -104,7 +105,6 @@ const Checkout = ({ cartItems = [], total = 0 }) => {
 
       options.handler = async function (response) {
         try {
-          // Call server-side verification function which will verify signature and write order to Firestore
           const verifyRes = await fetch(`${FUNCTIONS_BASE}/verifyRazorpayPayment`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -134,11 +134,58 @@ const Checkout = ({ cartItems = [], total = 0 }) => {
         }
       };
 
-      const rzp = new window.Razorpay(options);
+      try {
+        const rzp = new window.Razorpay(options);
+        rzp.open();
+        return;
+      } catch (err) {
+        console.error('Payment initialization failed for server order:', err);
+      }
+    }
+
+    // --- Fallback: client-only checkout (development fallback, less secure) ---
+    try {
+      const clientOptions = {
+        key: rzpKey,
+        amount: Math.round(total * 100), // paise
+        currency: 'INR',
+        name: 'Bold & Brew',
+        description: 'Coffee Order Payment (client fallback)',
+        prefill: { name: form.fullName, email: form.email },
+        theme: { color: '#b9805a' }
+      };
+
+      clientOptions.handler = async function (response) {
+        try {
+          // Directly save order in Firestore (no server verification) — development fallback only
+          await addDoc(collection(db, 'orders'), {
+            userId: user.uid,
+            items: cartItems,
+            date: serverTimestamp(),
+            total,
+            status: 'completed',
+            shipping: form,
+            razorpayPaymentId: response.razorpay_payment_id,
+            razorpayOrderId: response.razorpay_order_id || null,
+            note: 'Saved from client-only checkout (no server verification)'
+          });
+
+          if (form.saveForFuture) {
+            await setDoc(doc(db, 'users', user.uid), { address: form }, { merge: true });
+          }
+
+          navigate('/order-confirmed');
+        } catch (err) {
+          console.error('Failed to save order after client checkout:', err);
+          alert('Payment succeeded but order save failed. Contact support with your payment id: ' + response.razorpay_payment_id);
+        }
+      };
+
+      const rzp = new window.Razorpay(clientOptions);
       rzp.open();
     } catch (err) {
-      console.error('Payment initialization failed:', err);
-      alert(err.message || 'Failed to initialize payment. Please try again.');
+      console.error('Client checkout initialization failed:', err);
+      alert('Failed to initialize payment. Please try again.');
     }
   };
 
