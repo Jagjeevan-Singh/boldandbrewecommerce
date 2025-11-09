@@ -3,11 +3,6 @@ import { db, auth } from '../firebase';
 import { collection, addDoc, serverTimestamp, doc, getDoc, setDoc } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
 import './Checkout.css';
-import React, { useState, useEffect } from 'react';
-import { db, auth } from '../firebase';
-import { collection, addDoc, serverTimestamp, doc, getDoc, setDoc } from 'firebase/firestore';
-import { useNavigate } from 'react-router-dom';
-import './Checkout.css';
 
 // Ensure Razorpay SDK is loaded in public/index.html:
 // <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
