@@ -299,6 +299,15 @@ function App() {
                 </Layout>
               }
             />
+            {/* Wishlist route */}
+            <Route
+              path="/wishlist"
+              element={
+                <Layout cartCount={cartCount} wishlistCount={wishlistItems.length}>
+                  <Wishlist items={wishlistItems} onRemove={removeFromWishlist} onMoveToCart={moveToCart} />
+                </Layout>
+              }
+            />
             {/* NEW (Uses discountedTotal) - Checkout with final price */}
             <Route
               path="/checkout"
