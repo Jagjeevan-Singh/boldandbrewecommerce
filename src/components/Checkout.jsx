@@ -59,66 +59,78 @@ const Checkout = ({ cartItems = [], total = 0 }) => {
       return;
     }
 
-    // Create payment preference via server proxy (server handles Razorpay auth)
-    let preference;
+    // Create a server-side order via Firebase Function and then open Razorpay checkout.
+    // Build functions base URL (emulator support)
+    const PROJECT_ID = import.meta.env.VITE_FIREBASE_PROJECT_ID;
+    const REGION = import.meta.env.VITE_FIREBASE_FUNCTIONS_REGION || 'us-central1';
+    const USE_EMULATOR = import.meta.env.VITE_USE_FIREBASE_EMULATOR === 'true';
+    const FUNCTIONS_BASE = USE_EMULATOR
+      ? `http://localhost:5001/${PROJECT_ID}/${REGION}`
+      : `https://${REGION}-${PROJECT_ID}.cloudfunctions.net`;
+
+    let order;
     try {
-      const res = await fetch('/api/razorpay/preferences', {
+      const res = await fetch(`${FUNCTIONS_BASE}/createRazorpayOrder`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          amount: total * 100, // paise
-          currency: 'INR',
-          notes: { description: 'Bold & Brew Coffee Order' }
-        })
+        body: JSON.stringify({ amount: Math.round(total) /* rupees */ , currency: 'INR' })
       });
 
       if (!res.ok) {
-        const errBody = await res.json().catch(() => ({}));
-        throw new Error(errBody.error?.message || 'Failed to create payment preference');
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.error || 'Failed to create order');
       }
 
-      preference = await res.json();
+      order = await res.json();
     } catch (err) {
-      console.error('Payment preference creation failed:', err);
-      alert('Failed to initiate payment. Please try again.');
+      console.error('Failed creating order on backend:', err);
+      alert('Could not initiate payment. Please try again.');
       return;
     }
 
     try {
-      // Build options using preference response and extra UI data
+      // Prepare Razorpay options using the server-created order
+      const rzpKey = import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_RD3vXSAsbG6VGZ';
       const options = {
-        ...preference,
+        key: rzpKey,
+        amount: order.amount, // amount in paise
+        currency: order.currency,
         name: 'Bold & Brew',
         description: 'Coffee Order Payment',
-        prefill: {
-          name: form.fullName,
-          email: form.email
-        },
-        theme: { color: '#b9805a' },
-        handler: async function (response) {
-          try {
-            // Save order to Firestore on payment success
-            await addDoc(collection(db, 'orders'), {
-              userId: user.uid,
-              items: cartItems,
-              date: serverTimestamp(),
+        order_id: order.id,
+        prefill: { name: form.fullName, email: form.email },
+        theme: { color: '#b9805a' }
+      };
+
+      options.handler = async function (response) {
+        try {
+          // Call server-side verification function which will verify signature and write order to Firestore
+          const verifyRes = await fetch(`${FUNCTIONS_BASE}/verifyRazorpayPayment`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              orderId: response.razorpay_order_id,
+              paymentId: response.razorpay_payment_id,
+              signature: response.razorpay_signature,
+              cartItems,
               total,
-              status: 'completed',
-              shipping: form,
-              razorpayPaymentId: response.razorpay_payment_id,
-              razorpayOrderId: response.razorpay_order_id
-            });
+              shippingForm: form,
+              userId: user.uid,
+              saveForFuture: form.saveForFuture
+            })
+          });
 
-            // Save address if user opted to
-            if (form.saveForFuture) {
-              await setDoc(doc(db, 'users', user.uid), { address: form }, { merge: true });
-            }
-
-            navigate('/order-confirmed');
-          } catch (err) {
-            console.error('Failed to save order:', err);
-            alert('Payment successful but order failed to save. Please contact support with your Razorpay payment ID: ' + response.razorpay_payment_id);
+          const verifyBody = await verifyRes.json().catch(() => ({}));
+          if (!verifyRes.ok || verifyBody.status === 'failure') {
+            console.error('Verification failed:', verifyBody);
+            alert('Payment succeeded but verification failed. Contact support with payment id: ' + response.razorpay_payment_id);
+            return;
           }
+
+          navigate('/order-confirmed');
+        } catch (err) {
+          console.error('Verification or saving order failed:', err);
+          alert('Payment succeeded but we could not confirm the order. Please contact support with your payment id.');
         }
       };
 
