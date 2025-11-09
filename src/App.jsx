@@ -8,6 +8,7 @@ import CheckoutPage from "./components/CheckoutPage";
 import PaymentPage from "./components/PaymentPage";
 import OrderConfirmed from "./components/OrderConfirmed";
 import OrdersPageg from "./components/OrdersPageg";
+import OrdersPage from './components/OrdersPage';
 import OrderDetails from "./components/OrderDetails";
 import MyAccount from "./components/MyAccount";
 
@@ -350,7 +351,7 @@ function App() {
             <Route path="/order-confirmed" element={<Layout><OrderConfirmed /></Layout>} />
 
             {/* Orders & Account */}
-            <Route path="/orders-list" element={<Layout><OrdersPageg /></Layout>} />
+            <Route path="/orders-list" element={<Layout><OrdersPage /></Layout>} />
             <Route path="/orders/:id" element={<Layout><OrderDetails /></Layout>} />
             <Route path="/account" element={<Layout><MyAccount /></Layout>} />
 
