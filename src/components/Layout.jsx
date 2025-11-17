@@ -3,7 +3,6 @@ import AutoScrollBanner from './AutoScrollBanner';
 import Footer from './Footer'
 import DotGrid from '../blocks/Backgrounds/DotGrid/DotGrid'
 import { useLocation } from 'react-router-dom'
-import OrdersPage from './OrdersPage';
 
 const Layout = ({ children, cartCount, wishlistCount }) => {
   const location = useLocation()
