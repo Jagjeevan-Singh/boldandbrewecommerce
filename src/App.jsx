@@ -1,20 +1,23 @@
 import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import { getAuth, onAuthStateChanged } from 'firebase/auth';
-import { getFirestore, doc, getDoc, collection, onSnapshot, query, where, getDocs } from 'firebase/firestore';
+import { onAuthStateChanged } from 'firebase/auth';
+import { doc, getDoc, collection, onSnapshot, query, where, getDocs } from 'firebase/firestore';
+import { auth, db } from './firebase';
 
 import Layout from './components/Layout';
+import ErrorBoundary from './components/ErrorBoundary';
 import CheckoutPage from "./components/CheckoutPage";
 import PaymentPage from "./components/PaymentPage";
 import OrderConfirmed from "./components/OrderConfirmed";
-import OrdersPageg from "./components/OrdersPageg";
 import OrdersPage from './components/OrdersPage';
 import OrderDetails from "./components/OrderDetails";
 import MyAccount from "./components/MyAccount";
+import ProductLanding from './components/ProductLanding';
 
 import Banner from './components/Banner';
 import BestSellerSection from './components/BestSellerSection';
 import ProductList from './components/ProductList';
+import ProductsPage from './components/ProductsPage';
 import RecipeSection from './components/RecipeSection';
 import Cart from './components/Cart';
 import Wishlist from './components/Wishlist';
@@ -30,7 +33,6 @@ import Register from './components/Register';
 import ForgotPassword from './components/ForgotPassword';
 import AdminMain from './components/AdminMain';
 import ContactUs from './components/ContactUs.jsx';
-import OrdersPage from './components/OrdersPage';
 import ShippingPolicy from './components/ShippingPolicy';
 
 import './App.css';
@@ -41,8 +43,7 @@ import logo from './assets/logo.png';
 import DotGrid from './blocks/Backgrounds/DotGrid/DotGrid.jsx';
 import { CircularText } from './blocks/TextAnimations/CircularText/CircularText.jsx';
 
-const auth = getAuth();
-const db = getFirestore();
+// use `auth` and `db` from `src/firebase.js` (single initialized app)
 
 const ProtectedAdminRoute = ({ children }) => {
   const [userRole, setUserRole] = useState(null);
@@ -265,7 +266,8 @@ function App() {
         }}
       >
         <Router>
-          <Routes>
+    <ErrorBoundary>
+    <Routes>
             {/* Home Page */}
             <Route
               path="/"
@@ -319,6 +321,36 @@ function App() {
               }
             />
 
+            {/* Products listing page */}
+            <Route
+              path="/products"
+              element={
+                <Layout cartCount={cartCount} wishlistCount={wishlistItems.length}>
+                  <ProductsPage
+                    products={products}
+                    onAdd={addToCart}
+                    onWishlist={handleWishlistToggle}
+                    searchTerm={appSearchTerm}
+                    setSearchTerm={setAppSearchTerm}
+                  />
+                </Layout>
+              }
+            />
+
+            {/* Individual product detail page */}
+            <Route
+              path="/product/:id"
+              element={
+                <Layout cartCount={cartCount} wishlistCount={wishlistItems.length}>
+                  <ProductLanding
+                    products={products}
+                    onAddToCart={addToCart}
+                    onAddToWishlist={handleWishlistToggle}
+                  />
+                </Layout>
+              }
+            />
+
             {/* Auth Routes (wrapped with Layout for consistent header/footer) */}
             <Route
               path="/login"
@@ -352,6 +384,8 @@ function App() {
 
             {/* Orders & Account */}
             <Route path="/orders-list" element={<Layout><OrdersPage /></Layout>} />
+            {/* Also support /orders as an alias for /orders-list so either URL shows the same page */}
+            <Route path="/orders" element={<Layout><OrdersPage /></Layout>} />
             <Route path="/orders/:id" element={<Layout><OrderDetails /></Layout>} />
             <Route path="/account" element={<Layout><MyAccount /></Layout>} />
 
@@ -370,7 +404,8 @@ function App() {
             {/* Admin */}
             <Route path="/admin-login" element={<AdminLogin />} />
             <Route path="/admin/*" element={<ProtectedAdminRoute><AdminMain /></ProtectedAdminRoute>} />
-          </Routes>
+    </Routes>
+    </ErrorBoundary>
         </Router>
       </div>
     </>
