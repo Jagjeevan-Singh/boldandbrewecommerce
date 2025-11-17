@@ -20,7 +20,7 @@ function SideBar() {
         <ul className="sidebar-links">
           <li><NavLink to="/" onClick={() => setOpen(false)}>Home</NavLink></li>
           <li><NavLink to="/products" onClick={() => setOpen(false)}>Products</NavLink></li>
-          <li><NavLink to="/orders" onClick={() => setOpen(false)}>Orders</NavLink></li>
+          <li><NavLink to="/orders-list" onClick={() => setOpen(false)}>Orders</NavLink></li>
           <li><NavLink to="/about" onClick={() => setOpen(false)}>About Us</NavLink></li>
           <li><NavLink to="/contact" onClick={() => setOpen(false)}>Contact Us</NavLink></li>
         </ul>

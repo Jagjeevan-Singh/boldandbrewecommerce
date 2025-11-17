@@ -15,6 +15,7 @@ const Checkout = ({ cartItems = [], total = 0 }) => {
     city: '',
     state: '',
     email: '',
+    phone: '',
     saveForFuture: false
   });
 
@@ -127,7 +128,8 @@ const Checkout = ({ cartItems = [], total = 0 }) => {
             return;
           }
 
-          navigate('/order-confirmed');
+          // Pass payment and checkout info to the confirmation page so it can display details
+          navigate('/order-confirmed', { state: { payment: response, checkout: form } });
         } catch (err) {
           console.error('Verification or saving order failed:', err);
           alert('Payment succeeded but we could not confirm the order. Please contact support with your payment id.');
@@ -163,7 +165,8 @@ const Checkout = ({ cartItems = [], total = 0 }) => {
             items: cartItems,
             date: serverTimestamp(),
             total,
-            status: 'completed',
+            // Mark client-saved orders as 'In Process' to match server verification behavior
+            status: 'In Process',
             shipping: form,
             razorpayPaymentId: response.razorpay_payment_id,
             razorpayOrderId: response.razorpay_order_id || null,
@@ -174,7 +177,8 @@ const Checkout = ({ cartItems = [], total = 0 }) => {
             await setDoc(doc(db, 'users', user.uid), { address: form }, { merge: true });
           }
 
-          navigate('/order-confirmed');
+          // Send payment/check-out data to the confirmation page
+          navigate('/order-confirmed', { state: { payment: { razorpay_payment_id: response.razorpay_payment_id, razorpay_order_id: response.razorpay_order_id, amount: Math.round(total * 100) }, checkout: form } });
         } catch (err) {
           console.error('Failed to save order after client checkout:', err);
           alert('Payment succeeded but order save failed. Contact support with your payment id: ' + response.razorpay_payment_id);
@@ -239,6 +243,16 @@ const Checkout = ({ cartItems = [], total = 0 }) => {
           onChange={handleChange}
           required
           type="email"
+        />
+        <input
+          name="phone"
+          placeholder="Phone Number"
+          value={form.phone}
+          onChange={handleChange}
+          required
+          type="tel"
+          pattern="[0-9]{10}"
+          title="Please enter a 10-digit phone number"
         />
         <div className="save-future-row">
           <input

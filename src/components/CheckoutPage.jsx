@@ -10,7 +10,6 @@ export default function CheckoutPage({ cartItems: propCartItems = [], total: pro
 
   return (
     <div style={{ maxWidth: 900, margin: "0 auto", padding: 16 }}>
-      <h2>Checkout</h2>
       {/* Render Checkout component which handles shipping, order creation and payment */}
       <Checkout cartItems={cartItems} total={total} />
     </div>

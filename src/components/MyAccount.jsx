@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getFirestore, collection, getDocs, query, orderBy } from "firebase/firestore";
+import { collection, getDocs, query, orderBy } from "firebase/firestore";
+import { db } from "../firebase";
 
 export default function MyAccount() {
   const navigate = useNavigate();
@@ -9,9 +10,8 @@ export default function MyAccount() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    let mounted = true;
-    const db = getFirestore();
-    const q = query(collection(db, "orders"), orderBy("createdAt", "desc"));
+  let mounted = true;
+  const q = query(collection(db, "orders"), orderBy("createdAt", "desc"));
 
     const fetch = async () => {
       setLoading(true);

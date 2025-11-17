@@ -13,7 +13,6 @@ import OrdersPage from './components/OrdersPage';
 import OrderDetails from "./components/OrderDetails";
 import MyAccount from "./components/MyAccount";
 import ProductLanding from './components/ProductLanding';
-
 import Banner from './components/Banner';
 import BestSellerSection from './components/BestSellerSection';
 import ProductList from './components/ProductList';

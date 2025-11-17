@@ -72,56 +72,65 @@ const OrdersPage = () => {
 		}
 	};
 
-	if (loading) return <div style={{ padding: 16 }}>Loading orders...</div>;
-	if (error) return <div style={{ padding: 16, color: 'red' }}>Error: {error}</div>;
+	if (loading) return <div className="orders-loading">Loading orders...</div>;
+	if (error) return <div className="orders-error">Error: {error}</div>;
 
-	if (!orders.length) {
-		return <div style={{ padding: 16 }}>No orders found.</div>;
-	}
+	if (!orders.length) return <div className="orders-empty">No orders found.</div>;
 
 	return (
-		<div style={{ maxWidth: 900, margin: '0 auto', padding: 16 }}>
-			<h2>{isAdmin ? 'All Orders' : 'My Orders'}</h2>
-			<div style={{ display: 'grid', gap: 12 }}>
-				{orders.map((o) => (
-					<div
-						key={o.id}
-						onClick={() => navigate(`/orders/${o.id}`)}
-						style={{
-							border: '1px solid #ddd',
-							padding: 12,
-							borderRadius: 6,
-							cursor: 'pointer',
-							transition: 'all 0.2s ease',
-							background: '#fff',
-						}}
-						onMouseEnter={(e) => (e.currentTarget.style.background = '#f9f9f9')}
-						onMouseLeave={(e) => (e.currentTarget.style.background = '#fff')}
-					>
-						<div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-							<div>
-								<strong>{o.shipping?.fullName || o.name || 'Unknown'}</strong>
+		<div className="orders-container">
+			<div className="orders-header">
+				<h2 className="orders-title">{isAdmin ? 'All Orders' : 'My Orders'}</h2>
+				<div className="orders-count">{orders.length} orders</div>
+			</div>
+
+			<div className="orders-list">
+				{orders.map((o) => {
+					const paymentStatus = o.razorpayPaymentId || o.razorpay_payment_id || o.paymentId || o.payment_id ? 'Success' : 'Pending';
+					const statusDisplay = (() => {
+						const s = o.status || o.paymentStatus || '';
+						return (s && String(s).toLowerCase() !== 'completed') ? s : 'In Process';
+					})();
+					
+					return (
+						<div key={o.id} className="order-row-item" onClick={() => navigate(`/orders/${o.id}`)}>
+							<div className="order-col order-date">
+								<div className="order-date-text">{formatDate(o.date || o.createdAt)}</div>
 							</div>
-							<div>{formatAmount(o.total || o.amount)}</div>
+							
+							<div className="order-col order-customer">
+								<div className="order-customer-name">{o.shipping?.fullName || o.name || 'Unknown'}</div>
+							</div>
+							
+							<div className="order-col order-products">
+								{o.items && o.items.length > 0 ? (
+									<div className="products-list">
+										{o.items.map((item, idx) => (
+											<span key={idx} className="product-item">
+												{item.name || item.productName || 'Item'} × {item.quantity || item.qty || 1}
+												{idx < o.items.length - 1 && ', '}
+											</span>
+										))}
+									</div>
+								) : (
+									<span className="no-items">No items</span>
+								)}
+							</div>
+							
+							<div className="order-col order-amount-col">
+								<div className="order-amount-value">{formatAmount(o.total || o.amount)}</div>
+							</div>
+							
+							<div className="order-col order-payment">
+								<span className={`payment-badge ${paymentStatus.toLowerCase()}`}>{paymentStatus}</span>
+							</div>
+							
+							<div className="order-col order-status">
+								<span className="status-badge">{statusDisplay}</span>
+							</div>
 						</div>
-
-						<div style={{ marginBottom: 6 }}>
-							<strong>Payment ID:</strong> {o.razorpayPaymentId || o.paymentId || o.razorpay_payment_id || 'N/A'}
-						</div>
-
-						<div style={{ marginBottom: 6 }}>
-							<strong>Status:</strong> {o.status || o.paymentStatus || 'Success'}
-						</div>
-
-						<div style={{ marginBottom: 6 }}>
-							<strong>Delivery Option:</strong> {o.deliveryOption || 'N/A'}
-						</div>
-
-						<div style={{ marginBottom: 6 }}>
-							<strong>Created:</strong> {formatDate(o.date || o.createdAt)}
-						</div>
-					</div>
-				))}
+					);
+				})}
 			</div>
 		</div>
 	);

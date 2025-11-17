@@ -9,33 +9,51 @@ const admin = require('firebase-admin');
 admin.initializeApp();
 const db = admin.firestore();
 
-// 2. Initialize Razorpay (Reading keys from secure config)
-// NOTE: We use functions.config() because this is a Firebase Function environment.
-const razorpay = new Razorpay({
-  key_id: functions.config().razorpay.key_id, 
-  key_secret: functions.config().razorpay.key_secret
-});
+// 2. Lazy Razorpay initializer: avoid reading functions.config() at module load time
+// because missing config values will throw and cause the function to crash before
+// it can respond to preflight requests. We read the keys inside handlers.
+function getRazorpayInstance() {
+  try {
+    const cfg = functions.config && functions.config().razorpay ? functions.config().razorpay : null;
+    if (!cfg || !cfg.key_id || !cfg.key_secret) return null;
+    return new Razorpay({ key_id: cfg.key_id, key_secret: cfg.key_secret });
+  } catch (e) {
+    // If functions.config() throws, return null so handlers can reply gracefully.
+    console.warn('Failed to read functions.config for razorpay:', e && e.message);
+    return null;
+  }
+}
 
 // --------------------------------------------------------------------------------
 // FUNCTION 1: CREATE ORDER (Called by Frontend to initiate payment)
 // --------------------------------------------------------------------------------
 exports.createRazorpayOrder = functions.https.onRequest((req, res) => {
+  // Explicitly set CORS headers (helps when deployed) and handle preflight early
+  res.set('Access-Control-Allow-Origin', '*');
+  res.set('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
+  res.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  if (req.method === 'OPTIONS') {
+    // Preflight request
+    return res.status(204).send('');
+  }
   cors(req, res, async () => {
-    // Handling CORS preflight request
-    if (req.method === 'OPTIONS') {
-        res.status(204).send('');
-        return;
-    }
     if (req.method !== 'POST') {
       return res.status(405).send('Method Not Allowed');
     }
     
     const { amount, currency = 'INR' } = req.body;
+    // Temporary comment to force deployment update for createRazorpayOrder
     if (!amount || typeof amount !== 'number' || amount <= 0) {
         return res.status(400).json({ error: 'Invalid amount.' });
     }
 
     try {
+      const razorpay = getRazorpayInstance();
+      if (!razorpay) {
+        console.error('Razorpay keys are not configured (createRazorpayOrder)');
+        return res.status(500).json({ error: 'Razorpay keys not configured' });
+      }
+
       const order = await razorpay.orders.create({
         amount: amount * 100, // amount in paise
         currency,
@@ -53,12 +71,14 @@ exports.createRazorpayOrder = functions.https.onRequest((req, res) => {
 // FUNCTION 2: VERIFY PAYMENT (Called by Frontend AFTER successful payment)
 // --------------------------------------------------------------------------------
 exports.verifyRazorpayPayment = functions.https.onRequest((req, res) => {
+  // Explicit CORS headers for deployed environments
+  res.set('Access-Control-Allow-Origin', '*');
+  res.set('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
+  res.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  if (req.method === 'OPTIONS') {
+    return res.status(204).send('');
+  }
   cors(req, res, async () => {
-    // Handling CORS preflight request
-    if (req.method === 'OPTIONS') {
-        res.status(204).send('');
-        return;
-    }
     if (req.method !== 'POST') {
       return res.status(405).send('Method Not Allowed');
     }
@@ -69,10 +89,11 @@ exports.verifyRazorpayPayment = functions.https.onRequest((req, res) => {
         cartItems, total, shippingForm, userId, saveForFuture 
     } = req.body;
     
-    // Get the SECRET key from the secure functions config
-    const key_secret = functions.config().razorpay.key_secret;
+  // Get the SECRET key from the secure functions config (safely)
+  const cfg = functions.config && functions.config().razorpay ? functions.config().razorpay : null;
+  const key_secret = cfg ? cfg.key_secret : null;
 
-    if (!orderId || !paymentId || !signature || !key_secret || !userId) {
+  if (!orderId || !paymentId || !signature || !key_secret || !userId) {
         return res.status(400).json({ status: 'failure', message: 'Missing required details.' });
     }
 
@@ -90,12 +111,13 @@ exports.verifyRazorpayPayment = functions.https.onRequest((req, res) => {
         }
 
         // Step 2: Verification SUCCESS! Save Order to Firestore (using Admin SDK)
-        await db.collection('orders').add({
+    await db.collection('orders').add({
             userId: userId,
             items: cartItems,
             date: admin.firestore.FieldValue.serverTimestamp(),
             total: total,
-            status: 'completed',
+      // mark newly verified payments as 'In Process' so admin can manage fulfillment
+      status: 'In Process',
             shipping: shippingForm,
             razorpayPaymentId: paymentId,
             razorpayOrderId: orderId,
@@ -123,11 +145,14 @@ exports.verifyRazorpayPayment = functions.https.onRequest((req, res) => {
 // server-side using the secret key stored in functions.config().razorpay
 // --------------------------------------------------------------------------------
 exports.createRazorpayPreference = functions.https.onRequest((req, res) => {
+  // Ensure CORS headers are always present
+  res.set('Access-Control-Allow-Origin', '*');
+  res.set('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
+  res.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  if (req.method === 'OPTIONS') {
+    return res.status(204).send('');
+  }
   cors(req, res, async () => {
-    if (req.method === 'OPTIONS') {
-      res.status(204).send('');
-      return;
-    }
     if (req.method !== 'POST') {
       return res.status(405).send('Method Not Allowed');
     }

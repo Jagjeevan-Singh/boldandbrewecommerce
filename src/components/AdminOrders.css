@@ -1,6 +1,20 @@
+/* AdminOrders.css */
+.admin-orders-container { max-width:1200px; margin:48px auto 0; padding:16px }
+.admin-orders-table-wrapper { overflow-x:auto; background:#fff; border-radius:10px; box-shadow:0 8px 24px rgba(15,15,15,0.04); padding:12px }
+.admin-orders-table { width:100%; border-collapse:collapse }
+.admin-orders-table th, .admin-orders-table td { padding:12px 10px; border-bottom:1px solid #f3e9df; text-align:left }
+.admin-orders-table thead th { background:#f7f3ef; color:#4a3c35; font-weight:700 }
+.admin-orders-table .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, 'Roboto Mono', monospace; font-size:0.9rem }
+.admin-orders-table select { padding:6px 8px; border-radius:6px; border:1px solid #d9cbb8 }
+.admin-orders-loading { padding:20px; text-align:center }
+
+@media (max-width:800px) {
+  .admin-orders-table th:nth-child(3), .admin-orders-table td:nth-child(3) { display:none }
+  .admin-orders-table th:nth-child(5), .admin-orders-table td:nth-child(5) { display:none }
+}
 .admin-orders-container {
   max-width: 1100px;
-  margin: 40px auto 0 auto;
+  margin: 48px auto 0 auto;
   padding: 24px;
   background: #fff;
   border-radius: 18px;
