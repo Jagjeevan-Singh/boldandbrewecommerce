@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { collection, addDoc, serverTimestamp, query, where, orderBy, limit, getDocs } from "firebase/firestore";
 import { db } from "../firebase.js";
+import { getProductImageUrl } from "../utils/imageUtils.js";
 import './OrderConfirmed.css';
 
 export default function OrderConfirmed() {
@@ -166,9 +167,15 @@ export default function OrderConfirmed() {
           <div className="oc-items">
             <h4>Items</h4>
             <ul>
-              {orderData.items.map((it, idx) => (
-                <li key={idx}>{(it.name || it.productName || it.title || it.product?.name) + ' × ' + (it.quantity || it.qty || 1) + ' — ' + (it.price ? `₹${(it.price).toFixed ? it.price.toFixed(2) : it.price}` : formatPriceString(it))}</li>
-              ))}
+              {orderData.items.map((it, idx) => {
+                const imageUrl = getProductImageUrl(it);
+                return (
+                  <li key={idx} style={{display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px'}}>
+                    <img src={imageUrl} alt={it.name || it.productName || 'Product'} style={{width: 40, height: 40, objectFit: 'cover', borderRadius: 4}} />
+                    <span>{(it.name || it.productName || it.title || it.product?.name) + ' × ' + (it.quantity || it.qty || 1) + ' — ' + (it.price ? `₹${(it.price).toFixed ? it.price.toFixed(2) : it.price}` : formatPriceString(it))}</span>
+                  </li>
+                );
+              })}
             </ul>
           </div>
         )}

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { db } from '../firebase';
 import { collection, getDocs, doc, getDoc, updateDoc, query, orderBy } from 'firebase/firestore';
+import { getProductImageUrl } from '../utils/imageUtils.js';
 import './AdminOrders.css';
 
 const STATUS_OPTIONS = ['In Process', 'Shipped', 'Completed'];
@@ -87,13 +88,17 @@ export default function AdminOrders() {
               </div>
 
               <div className="admin-order-items">
-                {order.items && order.items.map((item, idx) => (
-                  <div className="admin-order-item" key={idx}>
-                    <span className="admin-item-name">{item.name || item.productName || 'Item'}</span>
-                    <span className="admin-item-qty">x{item.quantity || item.qty || 1}</span>
-                    <span className="admin-item-price">₹{item.price || item.unitPrice || 0}</span>
-                  </div>
-                ))}
+                {order.items && order.items.map((item, idx) => {
+                  const imageUrl = getProductImageUrl(item);
+                  return (
+                    <div className="admin-order-item" key={idx}>
+                      <img src={imageUrl} alt={item.name || item.productName || 'Product'} style={{width: 40, height: 40, objectFit: 'cover', borderRadius: 4, marginRight: 8}} />
+                      <span className="admin-item-name">{item.name || item.productName || 'Item'}</span>
+                      <span className="admin-item-qty">x{item.quantity || item.qty || 1}</span>
+                      <span className="admin-item-price">₹{item.price || item.unitPrice || 0}</span>
+                    </div>
+                  );
+                })}
               </div>
 
               <div className="admin-order-bottom">

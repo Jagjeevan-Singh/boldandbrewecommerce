@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "../firebase.js";
+import { getProductImageUrl } from "../utils/imageUtils.js";
 import './OrderDetails.css';
 
 export default function OrderDetails() {
@@ -152,6 +153,7 @@ export default function OrderDetails() {
               <table className="od-items-table">
                 <thead>
                   <tr>
+                    <th>Image</th>
                     <th>Product</th>
                     <th>Qty</th>
                     <th>Price</th>
@@ -164,8 +166,10 @@ export default function OrderDetails() {
                     const qty = it.quantity || it.qty || 1;
                     const price = it.price ?? it.unitPrice ?? it.product?.price ?? 0;
                     const subtotal = (Number(price) || 0) * (Number(qty) || 0);
+                    const imageUrl = getProductImageUrl(it);
                     return (
                       <tr key={idx}>
+                        <td><img src={imageUrl} alt={name} style={{width: 50, height: 50, objectFit: 'cover', borderRadius: 4}} /></td>
                         <td>{name}</td>
                         <td className="od-center">{qty}</td>
                         <td className="od-right">{formatAmount(price)}</td>
@@ -176,7 +180,7 @@ export default function OrderDetails() {
                 </tbody>
                 <tfoot>
                   <tr>
-                    <td colSpan={3} style={{ textAlign: 'right', fontWeight: 700 }}>Total</td>
+                    <td colSpan={4} style={{ textAlign: 'right', fontWeight: 700 }}>Total</td>
                     <td className="od-right" style={{ fontWeight: 700 }}>{formatAmount(order.total ?? order.amount ?? order.totalAmount ?? 0)}</td>
                   </tr>
                 </tfoot>
