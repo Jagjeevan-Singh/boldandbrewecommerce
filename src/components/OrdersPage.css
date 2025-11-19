@@ -41,7 +41,7 @@
 
 .order-row-item {
   display: grid;
-  grid-template-columns: 180px 200px 1fr 130px 120px 140px;
+  grid-template-columns: 80px 180px 200px 1fr 130px 120px 140px;
   gap: 16px;
   align-items: center;
   background: linear-gradient(145deg, #ffffff 0%, #fffbf7 100%);
@@ -226,6 +226,7 @@
   font-size: 0.9rem;
 }
 
+.order-image::before { content: ''; }
 .order-date::before { content: 'Date:'; }
 .order-customer::before { content: 'Customer:'; }
 .order-products::before { content: 'Products:'; }
@@ -252,6 +253,32 @@
   font-size: 1.15rem;
 }
 
+/* Mobile-specific header with larger image and inline product name */
+.order-mobile-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+.order-mobile-image {
+  width: 90px;
+  height: 90px;
+  object-fit: cover;
+  border-radius: 10px;
+  flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(44,24,16,0.08);
+}
+.order-mobile-name {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #2c1810;
+  line-height: 1.2;
+}
+/* Hide desktop-specific image & customer columns on mobile */
+.order-image, .order-customer {
+  display: none;
+}
+
 /* Desktop View (768px and up) */
 @media (min-width: 768px) {
   .orders-container {
@@ -270,7 +297,7 @@
   }
 
   .order-row-item {
-    grid-template-columns: 180px 200px 1fr 130px 120px 140px;
+    grid-template-columns: 80px 180px 200px 1fr 130px 120px 140px;
     gap: 16px;
     padding: 20px 24px;
   }
@@ -308,17 +335,20 @@
   .order-amount-value {
     font-size: 1.2rem;
   }
+  /* Desktop: show original columns, hide mobile header */
+  .order-mobile-header { display: none; }
+  .order-image, .order-customer { display: flex; }
 }
 
 @media (min-width: 1024px) {
   .order-row-item {
-    grid-template-columns: 180px 200px 1fr 130px 120px 140px;
+    grid-template-columns: 80px 180px 200px 1fr 130px 120px 140px;
   }
 }
 
 @media (min-width: 1200px) {
   .order-row-item {
-    grid-template-columns: 200px 220px 1fr 140px 130px 150px;
+    grid-template-columns: 80px 200px 220px 1fr 140px 130px 150px;
     gap: 20px;
   }
 }

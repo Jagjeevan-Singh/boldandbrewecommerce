@@ -88,6 +88,26 @@
   font-size: 0.98em;
 }
 
+/* Customer details block */
+.admin-order-customer {
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+  font-size:0.9rem;
+  background:#fff;
+  padding:10px 12px;
+  border:1px solid #e0d6cc;
+  border-radius:8px;
+}
+.admin-order-customer .customer-row { display:flex; gap:6px; line-height:1.25; }
+.admin-order-customer .customer-row .label { min-width:80px; font-weight:600; color:#5d4037; }
+.admin-order-customer .address-value { flex:1; }
+.admin-order-customer .address-value { white-space:normal; word-wrap:break-word; line-height:1.3; }
+.admin-order-customer .payment-status { font-weight:600; }
+.admin-order-customer .payment-status.paid { color:#2e7d32; }
+.admin-order-customer .payment-status.pending { color:#ef6c00; }
+.admin-order-customer .payment-status.failed, .admin-order-customer .payment-status.cancelled { color:#c62828; }
+
 .admin-order-items {
   margin-bottom: 8px;
 }
@@ -112,6 +132,66 @@
 .admin-order-status {
   font-size: 0.97rem;
   color: #1976d2;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.admin-order-status label {
+  font-weight: 600;
+  color: #4e342e;
+}
+
+.admin-order-status select {
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid #d9cbb8;
+  background: white;
+  color: #4e342e;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+.admin-save-btn {
+  padding: 6px 16px;
+  background: linear-gradient(135deg, #4caf50 0%, #388e3c 100%);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(76, 175, 80, 0.2);
+}
+
+.admin-save-btn:hover {
+  background: linear-gradient(135deg, #388e3c 0%, #2e7d32 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(76, 175, 80, 0.3);
+}
+
+.admin-save-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.admin-order-bottom {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.admin-ship-btn {
+  padding: 8px 12px;
+  background: #e0e0e0;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
 }
 
 @media (max-width: 900px) {

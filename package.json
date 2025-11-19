@@ -10,9 +10,13 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
     "firebase": "^12.2.1",
     "gsap": "^3.13.0",
     "motion": "^12.23.12",
+    "node-fetch": "^3.3.2",
     "razorpay": "^2.9.6",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",

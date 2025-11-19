@@ -4,7 +4,7 @@ import { db } from '../firebase';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { FaStar } from 'react-icons/fa';
 
-function ProductRating({ productId }) {
+function ProductRating({ productId, onRatingUpdate }) {
   const [avg, setAvg] = useState(null);
   const [count, setCount] = useState(0);
 
@@ -17,11 +17,14 @@ function ProductRating({ productId }) {
       (snap) => {
         const ratings = snap.docs.map(doc => doc.data().rating).filter(r => typeof r === 'number');
         if (ratings.length) {
-          setAvg(ratings.reduce((a, b) => a + b, 0) / ratings.length);
+          const average = ratings.reduce((a, b) => a + b, 0) / ratings.length;
+          setAvg(average);
           setCount(ratings.length);
+          if (onRatingUpdate) onRatingUpdate(average, ratings.length);
         } else {
           setAvg(null);
           setCount(0);
+          if (onRatingUpdate) onRatingUpdate(null, 0);
         }
       },
       (error) => {
@@ -30,10 +33,11 @@ function ProductRating({ productId }) {
         // reset values on error (e.g., permission-denied) to keep UI stable
         setAvg(null);
         setCount(0);
+        if (onRatingUpdate) onRatingUpdate(null, 0);
       }
     );
     return () => unsub();
-  }, [productId]);
+  }, [productId, onRatingUpdate]);
 
   const displayAvg = avg === null ? 0 : avg;
   const displayCount = count;
