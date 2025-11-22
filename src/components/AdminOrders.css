@@ -44,6 +44,44 @@
   justify-content: center;
 }
 
+.admin-package-dimensions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 12px 0;
+  padding: 12px;
+  background: #f9f9f9;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+}
+
+.admin-package-dimensions label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #555;
+  margin-bottom: 4px;
+}
+
+.dimensions-inputs {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dimensions-inputs input,
+.admin-package-dimensions input[type="number"] {
+  padding: 6px 8px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  text-align: center;
+}
+
+.dimensions-inputs span {
+  font-weight: 600;
+  color: #888;
+}
+
 .admin-order-card {
   border: 1px solid #e0e0e0;
   border-radius: 14px;
@@ -187,11 +225,27 @@
 
 .admin-ship-btn {
   padding: 8px 12px;
-  background: #e0e0e0;
+  background: linear-gradient(135deg, #009688 0%, #00796b 100%);
+  color: white;
   border: none;
   border-radius: 6px;
   cursor: pointer;
   font-size: 0.9rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 150, 136, 0.2);
+}
+
+.admin-ship-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #00796b 0%, #00695c 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 150, 136, 0.3);
+}
+
+.admin-ship-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
 }
 
 @media (max-width: 900px) {
