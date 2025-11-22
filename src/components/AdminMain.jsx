@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 
 import AdminOrders from './AdminOrders';
 import AdminDashboard from './AdminDashboard';
+import EditProduct from './EditProduct';
+import CreateProduct from './CreateProduct';
 import './AdminMain.css';
 import logo from '../assets/logo.png';
 
@@ -12,6 +14,8 @@ const NAV_OPTIONS = [
 
 export default function AdminMain() {
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [showCreateProduct, setShowCreateProduct] = useState(false);
+  const [editingProduct, setEditingProduct] = useState(null);
 
   return (
     <div className="admin-main-wrapper">
@@ -33,8 +37,13 @@ export default function AdminMain() {
         </div>
       </nav>
       <div className="admin-main-content">
-        {activeTab === 'dashboard' && <AdminDashboard />}
+        {activeTab === 'dashboard' && <AdminDashboard onCreateProduct={() => setShowCreateProduct(true)} onEditProduct={(p) => setEditingProduct(p)} />}
         {activeTab === 'orders' && <AdminOrders />}
+        {showCreateProduct && <CreateProduct onClose={() => setShowCreateProduct(false)} />}
+        {editingProduct && <EditProduct product={editingProduct} onClose={() => setEditingProduct(null)} onSaved={(updated)=>{
+          // merge updated fields locally (optional refresh strategy)
+          setEditingProduct(null);
+        }} />}
       </div>
     </div>
   );

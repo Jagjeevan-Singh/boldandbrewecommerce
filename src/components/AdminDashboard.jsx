@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { collection, getDocs, doc, updateDoc } from "firebase/firestore";
+import { FaEdit } from 'react-icons/fa';
 import { db } from "../firebase";
 import "./AdminDashboard.css";
 
@@ -20,7 +21,7 @@ function ProductImage({ src, alt }) {
   return <img src={src} alt={alt} className="admin-dashboard-img" onError={e=>e.target.style.display='none'} />;
 }
 
-export default function AdminDashboard() {
+export default function AdminDashboard({ onCreateProduct, onEditProduct }) {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [savingId, setSavingId] = useState(null);
@@ -42,6 +43,15 @@ export default function AdminDashboard() {
       }
     };
     loadProducts();
+    // Listen for product deletion events
+    const onDeleted = (e) => {
+      const deletedId = e.detail?.id;
+      if (deletedId) {
+        setProducts(prev => prev.filter(p => p.id !== deletedId));
+      }
+    };
+    window.addEventListener('productDeleted', onDeleted);
+    return () => window.removeEventListener('productDeleted', onDeleted);
   }, []);
 
   const handleChange = (id, field, value) => {
@@ -83,6 +93,11 @@ export default function AdminDashboard() {
       <div style={{ padding: "32px 0", maxWidth: 1200, margin: "0 auto", fontFamily: 'Poppins, Montserrat, Arial, sans-serif' }}>
         <h2 style={{ color: '#4a3c35', fontWeight: 700, fontSize: '2.2rem', marginBottom: 32, letterSpacing: 1 }}>☕ Admin Dashboard</h2>
         {successMsg && <div style={{background:'#e6ffe6',color:'#2e7d32',padding:'10px 18px',borderRadius:8,marginBottom:18,fontWeight:600}}>{successMsg}</div>}
+        <div style={{marginBottom:18}}>
+          <button onClick={onCreateProduct} style={{background:'#b9805a',color:'#fff',border:'none',borderRadius:6,padding:'12px 24px',fontWeight:600,letterSpacing:1,cursor:'pointer',fontSize:'1em',boxShadow:'0 2px 8px #bcae9e22'}}>
+            + Create New Product
+          </button>
+        </div>
         {products.length === 0 ? (
           <p style={{color:'#a67c52'}}>No products found.</p>
         ) : (
@@ -128,9 +143,14 @@ export default function AdminDashboard() {
                       </div>
                     </td>
                     <td style={{padding:'10px 8px'}}>
-                      <button onClick={()=>handleSave(p.id)} disabled={savingId===p.id} style={{background:'#4a3c35',color:'#fff',border:'none',borderRadius:6,padding:'8px 18px',fontWeight:600,letterSpacing:1,cursor:'pointer',fontSize:'1em',boxShadow:'0 2px 8px #bcae9e22'}}>
-                        {savingId===p.id ? 'Saving...' : 'Save'}
-                      </button>
+                      <div style={{display:'flex',alignItems:'center',gap:10}}>
+                        <button onClick={()=>handleSave(p.id)} disabled={savingId===p.id} style={{background:'#4a3c35',color:'#fff',border:'none',borderRadius:6,padding:'8px 14px',fontWeight:600,letterSpacing:1,cursor:'pointer',fontSize:'0.95em',boxShadow:'0 2px 8px #bcae9e22'}}>
+                          {savingId===p.id ? 'Saving...' : 'Save'}
+                        </button>
+                        <button title="Edit full details" onClick={()=>onEditProduct && onEditProduct(p)} style={{background:'#b9805a',color:'#fff',border:'none',borderRadius:'50%',width:42,height:42,display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer',boxShadow:'0 2px 8px #bcae9e33'}}>
+                          <FaEdit size={18} />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}

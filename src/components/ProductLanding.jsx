@@ -8,6 +8,12 @@ import './CustomerReviewDrawer.css';
 const images = import.meta.glob('../assets/*', { eager: true, query: '?url', import: 'default' });
 
 function ProductImage({ src, alt, ...props }) {
+  // If src is an HTTP/HTTPS URL, use it directly. Otherwise treat as asset
+  if (!src) return <img src="" alt={alt} {...props} />;
+  if (src.startsWith('http://') || src.startsWith('https://')) {
+    return <img src={src} alt={alt} {...props} />;
+  }
+  // Legacy asset handling
   if (src && !src.startsWith('http')) {
     const match = Object.entries(images).find(([key]) => key.endsWith('/' + src));
     if (match) {
@@ -24,7 +30,7 @@ import './ProductLanding.css';
 import ProductReviews from './ProductReviews';
 import ProductRating from './ProductRating';
 import CustomerReviewSummary from './CustomerReviewSummary';
-import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, doc } from 'firebase/firestore';
 import { db } from '../firebase';
 import './CustomerReviewSummary.css';
 
@@ -75,21 +81,50 @@ function ProductLanding({ products, onAddToCart, onAddToWishlist }) {
   }, [product?.id]);
 
   // For espresso, show a fixed set of images as gallery
-  const espressoGallery = [
-    'espresso.jpg',
-    '100instant.jpg',
-    '7030instant.jpg',
-    'cappuccino.jpg',
-    'latte.jpg',
+  // Live subscription to this product doc to get updated images
+  const [liveProduct, setLiveProduct] = useState(null);
+  useEffect(() => {
+    if (!id) return;
+    const ref = doc(db, 'products', id);
+    const unsub = onSnapshot(ref, snap => {
+      if (snap.exists()) setLiveProduct({ id: snap.id, ...snap.data() });
+    });
+    return () => unsub();
+  }, [id]);
+
+  const effectiveProduct = liveProduct || product;
+  // Build gallery strictly from Firestore product fields
+  const dynamicImages = (effectiveProduct?.images && Array.isArray(effectiveProduct.images))
+    ? effectiveProduct.images.filter(img => typeof img === 'string' && img.trim() !== '')
+    : [];
+  const mainImg = effectiveProduct?.mainImage && typeof effectiveProduct.mainImage === 'string' && effectiveProduct.mainImage.trim() !== '' ? effectiveProduct.mainImage.trim() : null;
+  // Build gallery: keep order and duplicates so user can see every slot stored
+  const galleryImages = [
+    ...(mainImg ? [mainImg] : []),
+    ...dynamicImages
   ];
-  const isEspresso = product && product.name && product.name.toLowerCase().includes('espresso');
-  const galleryImages = isEspresso ? espressoGallery : (product.images && Array.isArray(product.images) ? product.images : [product.mainImage]);
-  const [selectedImage, setSelectedImage] = useState(galleryImages[0] || product?.mainImage || '');
+  if (process.env.NODE_ENV !== 'production') {
+    console.log('ProductLanding raw images array:', effectiveProduct?.images);
+    console.log('ProductLanding built galleryImages:', galleryImages);
+  }
+  const [selectedImage, setSelectedImage] = useState(galleryImages[0] || '');
+  useEffect(() => {
+    const first = galleryImages[0] || mainImg || '';
+    setSelectedImage(first);
+  }, [effectiveProduct?.id, galleryImages.map(i=>i).join('|')]);
+  // Responsive breakpoint for gallery orientation
+  const [isMobile, setIsMobile] = useState(typeof window !== 'undefined' ? window.innerWidth <= 900 : false);
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth <= 900);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
   const [showZoom, setShowZoom] = useState(false);
   const [zoomPos, setZoomPos] = useState({ x: 0, y: 0 });
   const imgRef = useRef(null);
+  const galleryRef = useRef(null);
 
-  if (!product) {
+  if (!effectiveProduct) {
     return <div style={{ padding: '2rem', textAlign: 'center' }}>Product not found</div>;
   }
 
@@ -103,7 +138,7 @@ function ProductLanding({ products, onAddToCart, onAddToWishlist }) {
             <ProductImage
               ref={imgRef}
               src={selectedImage}
-              alt={product.name}
+              alt={effectiveProduct.name}
               style={{ cursor: 'zoom-in', width: '100%', maxWidth: 400, borderRadius: 12 }}
               onMouseEnter={() => setShowZoom(true)}
               onMouseLeave={() => setShowZoom(false)}
@@ -154,41 +189,61 @@ function ProductLanding({ products, onAddToCart, onAddToWishlist }) {
               );
             })()}
           </div>
-          {/* Thumbnails: below main image on mobile, left on desktop (handled by CSS) */}
-          <div className="product-images">
-            {galleryImages.map((img, index) => (
-              <ProductImage
-                key={index}
-                src={img}
-                alt={`${product.name} ${index}`}
-                className={`thumb-image${selectedImage === img ? ' selected' : ''}`}
-                onClick={() => setSelectedImage(img)}
-              />
-            ))}
-          </div>
+          {/* Thumbnails gallery */}
+          {isMobile ? (
+            <div className={`product-images mobile-horizontal`}>
+              {galleryImages.map((img, index) => (
+                <ProductImage
+                  key={index}
+                  src={img}
+                  alt={`${effectiveProduct.name} ${index}`}
+                  className={`thumb-image${selectedImage === img ? ' selected' : ''}`}
+                  onClick={() => setSelectedImage(img)}
+                  style={{border:selectedImage===img?'3px solid #bf360c':'2px solid #d9c9bb'}}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="desktop-gallery-wrapper" style={{position:'relative',height:420}}>
+              <button type="button" aria-label="Scroll up" onClick={()=>galleryRef.current?.scrollBy({top:-120,behavior:'smooth'})} className="gallery-arrow gallery-arrow-top">▲</button>
+              <div ref={galleryRef} className={`product-images desktop-vertical`} style={{scrollBehavior:'smooth'}}>
+                {galleryImages.map((img, index) => (
+                  <ProductImage
+                    key={index}
+                    src={img}
+                    alt={`${effectiveProduct.name} ${index}`}
+                    className={`thumb-image${selectedImage === img ? ' selected' : ''}`}
+                    onClick={() => setSelectedImage(img)}
+                    style={{border:selectedImage===img?'3px solid #bf360c':'2px solid #d9c9bb'}}
+                  />
+                ))}
+              </div>
+              <button type="button" aria-label="Scroll down" onClick={()=>galleryRef.current?.scrollBy({top:120,behavior:'smooth'})} className="gallery-arrow gallery-arrow-bottom">▼</button>
+            </div>
+          )}
         </div>
 
         {/* Right product details */}
         <div className="product-details">
-          <h2>{product.name}</h2>
-          <span className="brand">{product.brand}</span>
+          <h2>{effectiveProduct.name}</h2>
+          <span className="brand">{effectiveProduct.brand}</span>
           <div style={{ margin: '6px 0 8px 0' }}>
-            <ProductRating productId={product.id} />
+            <ProductRating productId={effectiveProduct.id} />
           </div>
           <div>
-            <span className="price">₹{product.price}</span>
-            <span className="discount">₹{product.originalPrice}</span>
+            <span className="price">₹{effectiveProduct.price}</span>
+            <span className="discount">₹{effectiveProduct.originalPrice}</span>
           </div>
-          {product.stock === 0 && (
+          {effectiveProduct.stock === 0 && (
             <div className="out-of-stock-badge" style={{position:'static',margin:'10px 0 0 0',display:'inline-block',background:'#b71c1c',color:'#fff',fontWeight:700,fontSize:'1.1em',padding:'4px 14px',borderRadius:'8px',letterSpacing:'0.5px',boxShadow:'0 2px 8px #bcae9e33',zIndex:2,textAlign:'center'}}>Out of Stock</div>
           )}
           <div className="buttons">
-            <button onClick={() => onAddToCart(product)} disabled={product.stock === 0} style={product.stock === 0 ? {opacity:0.6, cursor:'not-allowed'} : {}}>Add to Cart</button>
-            <button onClick={() => onAddToWishlist(product)} disabled={product.stock === 0} style={product.stock === 0 ? {opacity:0.6, cursor:'not-allowed'} : {}}>Add to Wishlist</button>
+            <button onClick={() => onAddToCart(effectiveProduct)} disabled={effectiveProduct.stock === 0} style={effectiveProduct.stock === 0 ? {opacity:0.6, cursor:'not-allowed'} : {}}>Add to Cart</button>
+            <button onClick={() => onAddToWishlist(effectiveProduct)} disabled={effectiveProduct.stock === 0} style={effectiveProduct.stock === 0 ? {opacity:0.6, cursor:'not-allowed'} : {}}>Add to Wishlist</button>
           </div>
           <div className="description">
             <h4 style={{ fontWeight: 'bold', fontSize: '1.25em', marginBottom: '0.3em' }}>Description</h4>
-            <p>{product.description}</p>
+            <p>{effectiveProduct.description}</p>
           </div>
         </div>
       </div>
