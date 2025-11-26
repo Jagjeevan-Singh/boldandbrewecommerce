@@ -60,8 +60,7 @@ const Checkout = ({ cartItems = [], total = 0 }) => {
       return;
     }
 
-    // Create a server-side order via Firebase Function and then open Razorpay checkout.
-    // Build functions base URL (emulator support)
+    // Use Firebase HTTPS Functions (production or emulator depending on flags)
     const PROJECT_ID = import.meta.env.VITE_FIREBASE_PROJECT_ID;
     const REGION = import.meta.env.VITE_FIREBASE_FUNCTIONS_REGION || 'us-central1';
     const USE_EMULATOR = import.meta.env.VITE_USE_FIREBASE_EMULATOR === 'true';
@@ -71,17 +70,16 @@ const Checkout = ({ cartItems = [], total = 0 }) => {
 
     let order;
     try {
+      // Call Firebase Functions backend to create the order
       const res = await fetch(`${FUNCTIONS_BASE}/createRazorpayOrder`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ amount: Math.round(total) /* rupees */ , currency: 'INR' })
       });
-
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
         throw new Error(body.error || 'Failed to create order');
       }
-
       order = await res.json();
     } catch (err) {
       console.error('Failed creating order on backend:', err);
@@ -90,7 +88,7 @@ const Checkout = ({ cartItems = [], total = 0 }) => {
     }
 
     // If server-created order exists, use that. Otherwise fall back to a client-only checkout (dev fallback).
-    const rzpKey = import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_RD3vXSAsbG6VGZ';
+    const rzpKey = import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_live_RkNAPvahAqOEKr';
 
     if (order && order.id) {
       const options = {
@@ -128,7 +126,6 @@ const Checkout = ({ cartItems = [], total = 0 }) => {
             return;
           }
 
-          // Pass payment and checkout info to the confirmation page so it can display details
           navigate('/order-confirmed', { state: { payment: response, checkout: form } });
         } catch (err) {
           console.error('Verification or saving order failed:', err);

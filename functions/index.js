@@ -29,23 +29,15 @@ function getRazorpayInstance() {
 // FUNCTION 1: CREATE ORDER (Called by Frontend to initiate payment)
 // --------------------------------------------------------------------------------
 exports.createRazorpayOrder = functions.https.onRequest((req, res) => {
-  // Explicitly set CORS headers (helps when deployed) and handle preflight early
-  res.set('Access-Control-Allow-Origin', '*');
-  res.set('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
-  res.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  if (req.method === 'OPTIONS') {
-    // Preflight request
-    return res.status(204).send('');
-  }
-  cors(req, res, async () => {
+  return cors(req, res, async () => {
     if (req.method !== 'POST') {
       return res.status(405).send('Method Not Allowed');
     }
     
     const { amount, currency = 'INR' } = req.body;
-    // Temporary comment to force deployment update for createRazorpayOrder
+    
     if (!amount || typeof amount !== 'number' || amount <= 0) {
-        return res.status(400).json({ error: 'Invalid amount.' });
+      return res.status(400).json({ error: 'Invalid amount.' });
     }
 
     try {
@@ -60,10 +52,10 @@ exports.createRazorpayOrder = functions.https.onRequest((req, res) => {
         currency,
         receipt: `receipt_${Date.now()}`
       });
-      res.status(200).json(order);
+      return res.status(200).json(order);
     } catch (err) {
       console.error("Razorpay Order Creation Error:", err);
-      res.status(500).json({ error: 'Failed to create order on payment gateway.' });
+      return res.status(500).json({ error: 'Failed to create order on payment gateway.' });
     }
   });
 });
@@ -72,14 +64,7 @@ exports.createRazorpayOrder = functions.https.onRequest((req, res) => {
 // FUNCTION 2: VERIFY PAYMENT (Called by Frontend AFTER successful payment)
 // --------------------------------------------------------------------------------
 exports.verifyRazorpayPayment = functions.https.onRequest((req, res) => {
-  // Explicit CORS headers for deployed environments
-  res.set('Access-Control-Allow-Origin', '*');
-  res.set('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
-  res.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  if (req.method === 'OPTIONS') {
-    return res.status(204).send('');
-  }
-  cors(req, res, async () => {
+  return cors(req, res, async () => {
     if (req.method !== 'POST') {
       return res.status(405).send('Method Not Allowed');
     }
