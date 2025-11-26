@@ -1,6 +1,6 @@
 const functions = require('firebase-functions');
 const Razorpay = require('razorpay');
-// const cors = require('cors')({ origin: true });
+const cors = require('cors')({ origin: true });
 const crypto = require('crypto');
 const axios = require('axios');
 // Initialize the Firebase Admin SDK for server-side Firestore access
