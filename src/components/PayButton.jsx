@@ -52,7 +52,7 @@ export default function PayButton({
       const finalAmount = Math.round(amount * 100);
 
       const options = {
-        key: import.meta.env.VITE_RAZORPAY_KEY_ID || "RAZORPAY_KEY_ID",
+        key: import.meta.env.VITE_RAZORPAY_KEY_ID || "rzp_test_RD3VXSAsbG6VGZ",
         amount: finalAmount,
         currency: "INR",
         name: "Bold & Brew",
