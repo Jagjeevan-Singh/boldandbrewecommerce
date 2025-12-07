@@ -78,19 +78,31 @@ When creating/editing your EmailJS template, you have access to these variables:
 ## Recommended EmailJS Template Configuration
 
 ### Option 1: Use Pre-formatted HTML (Recommended)
-In your EmailJS template, simply use:
 
-```html
-{{{html_content}}}
-```
+**CRITICAL: EmailJS Template Body Configuration**
+
+In your EmailJS template editor at dashboard.emailjs.com:
+
+1. **Go to "Content" tab** in your template editor
+2. **In the email body (HTML), use TRIPLE braces:**
+   ```html
+   {{{html_content}}}
+   ```
+   ⚠️ **Must use 3 braces `{{{` not 2 braces `{{`** - This prevents HTML escaping
+
+3. **Template Settings Tab:**
+   - **To Email:** `{{to_email}}`
+   - **From Name:** Bold & Brew
+   - **Reply To:** `{{reply_to}}`
+   - **Subject:** Order Confirmation - Order #{{order_id}}
 
 This will use the beautifully formatted HTML email template that includes:
-- Company logo and branding
-- Customer information section
-- Order items with images
-- Pricing breakdown
-- Shipping and total amounts
-- Professional styling matching your brand colors
+- ✅ Company logo and branding
+- ✅ Customer information section
+- ✅ Order items with product images
+- ✅ Pricing breakdown with ₹ currency
+- ✅ Shipping and total amounts
+- ✅ Professional styling matching your brand colors
 
 ### Option 2: Custom Template
 If you want to create your own template, use these variables:
