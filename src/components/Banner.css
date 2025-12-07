@@ -1,0 +1,38 @@
+.banner-slider {
+  width: 100%;
+  height: auto; /* allow natural image height */
+  position: relative;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.banner-image {
+  width: 100%;
+  height: auto;
+  max-height: 100vh; /* don't exceed screen height */
+  object-fit: contain; /* show full image */
+  background-color: #000; /* fill space if aspect ratio doesn't match */
+  padding-top: 0px;
+  top: 100px;
+  margin-top: 48px;
+  box-sizing: border-box;
+}
+.slick-prev,
+.slick-next {
+  z-index: 10;
+  width: 50px;
+  height: 50px;
+}
+
+.slick-prev:before,
+.slick-next:before {
+  font-size: 40px;
+  color: white;
+}
+
+@media (max-width: 768px) {
+  .banner-image {
+    margin-top: 40px;
+    top: 0;
+  }
+}

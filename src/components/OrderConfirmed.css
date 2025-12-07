@@ -1,0 +1,242 @@
+/* OrderConfirmed.css - Mobile-first responsive design */
+/* Mobile View (0px to 767px) - Default styles */
+.oc-container { 
+  max-width: 960px; 
+  margin: 48px auto 0; 
+  padding: 16px;
+}
+
+.oc-card { 
+  background: linear-gradient(180deg, #ffffff, #fcfbf9); 
+  border-radius: 12px; 
+  padding: 18px; 
+  box-shadow: 0 12px 24px rgba(15, 20, 30, 0.06); 
+  border: 1px solid rgba(200, 180, 160, 0.15);
+}
+
+.oc-top { 
+  display: flex; 
+  flex-direction: column;
+  gap: 16px; 
+  margin-bottom: 16px;
+}
+
+.oc-left { 
+  background: linear-gradient(180deg, #fff5eb, #fffaf8); 
+  padding: 20px; 
+  border-radius: 12px; 
+  width: 100%;
+  text-align: center; 
+  box-shadow: inset 0 -6px 18px rgba(185, 135, 90, 0.03);
+}
+
+.oc-badge { 
+  display: inline-block; 
+  background: #e9f7ef; 
+  color: #146a37; 
+  padding: 8px 16px; 
+  border-radius: 999px; 
+  font-weight: 700; 
+  margin-bottom: 12px;
+  font-size: 0.95rem;
+}
+
+.oc-amount { 
+  margin: 8px 0; 
+  font-size: 2.2rem; 
+  color: #2b2b2b; 
+  font-weight: 800;
+}
+
+.oc-small { 
+  color: #6b5a4a; 
+  font-size: 1rem;
+}
+
+.oc-right { 
+  flex: 1;
+}
+
+.oc-title { 
+  margin: 0 0 12px 0; 
+  font-size: 1.25rem; 
+  color: #1c1c1c;
+  font-weight: 700;
+}
+
+.oc-details { 
+  display: grid; 
+  grid-template-columns: 1fr; 
+  gap: 14px; 
+  margin-bottom: 12px;
+}
+
+.oc-row { 
+  display: flex; 
+  flex-direction: column; 
+  gap: 6px;
+}
+
+.oc-row span { 
+  color: #7d6b5a; 
+  font-size: 0.95rem;
+}
+
+.oc-row strong { 
+  font-weight: 700; 
+  color: #111; 
+  font-size: 1.05rem;
+}
+
+@media (max-width: 768px) {
+  .oc-container {
+    margin: 120px auto 0;
+    padding: 12px;
+  }
+  
+  .oc-card {
+    padding: 14px;
+  }
+  
+  .oc-title {
+    font-size: 1rem;
+  }
+  
+  .oc-amount {
+    font-size: 1.6rem;
+  }
+  
+  .oc-row span {
+    font-size: 0.8rem;
+  }
+  
+  .oc-row strong {
+    font-size: 0.9rem;
+    word-break: break-word;
+  }
+  
+  .oc-small {
+    font-size: 0.85rem;
+  }
+  
+  .oc-badge {
+    font-size: 0.8rem;
+    padding: 6px 10px;
+  }
+  
+  .oc-ship h3,
+  .oc-items h4 {
+    font-size: 1.05rem;
+    margin-bottom: 10px;
+  }
+  
+  .oc-address {
+    font-size: 0.9rem;
+  }
+  
+  .oc-items li {
+    font-size: 0.9rem;
+  }
+  
+  .oc-btn {
+    font-size: 0.95rem;
+    padding: 12px 14px;
+  }
+}
+
+.oc-ship { 
+  margin: 18px 0;
+}
+
+.oc-address { 
+  white-space: pre-wrap; 
+  color: #453b32; 
+  line-height: 1.6;
+}
+
+.oc-items { 
+  margin-top: 16px; 
+  padding: 16px; 
+  background: #fff; 
+  border-radius: 10px; 
+  border: 1px solid #f3e9df;
+}
+
+.oc-items ul { 
+  margin: 0; 
+  padding-left: 20px;
+}
+
+.oc-items li { 
+  margin: 10px 0; 
+  color: #333; 
+  font-size: 1rem;
+}
+
+.oc-actions { 
+  display: flex; 
+  flex-direction: column;
+  gap: 12px; 
+  margin-top: 20px;
+}
+
+.oc-btn { 
+  padding: 14px 18px; 
+  border-radius: 10px; 
+  border: 1px solid rgba(0, 0, 0, 0.06); 
+  background: #fff; 
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 600;
+  width: 100%;
+}
+
+.oc-primary { 
+  background: #b9805a; 
+  color: #fff; 
+  border: none;
+}
+
+/* Desktop View (768px and up) */
+@media (min-width: 768px) {
+  .oc-container {
+    padding: 20px;
+  }
+  
+  .oc-card {
+    padding: 24px;
+  }
+  
+  .oc-top {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 20px;
+  }
+  
+  .oc-left {
+    min-width: 220px;
+    width: auto;
+  }
+  
+  .oc-amount {
+    font-size: 2rem;
+  }
+  
+  .oc-title {
+    font-size: 1.15rem;
+  }
+  
+  .oc-details {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .oc-actions {
+    flex-direction: row;
+    justify-content: flex-end;
+  }
+  
+  .oc-btn {
+    width: auto;
+    padding: 10px 14px;
+  }
+}

@@ -1,0 +1,139 @@
+/*
+  Consolidated global styles.
+  Removed duplicate/contradictory blocks and kept a single canonical set for global selectors
+  (header, footer, nav-links, badge, layout, basic components like product-card/cart tables).
+*/
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  font-family: 'Poppins', sans-serif;
+  color: #3e2723;
+  background: none;
+  overflow-x: hidden;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+/* App layout */
+.app-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.main-content {
+  margin-top: 96px; /* header/banner space */
+  flex: 1;
+  position: relative;
+}
+
+/* Header & nav (global) */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 2rem;
+  background-color: rgba(62, 39, 35, 0.8);
+  color: #fff;
+  position: fixed;
+  top: 34px; /* accounts for top banner */
+  left: 0;
+  right: 0;
+  width: 100%;
+  z-index: 999;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  backdrop-filter: blur(6px);
+  box-sizing: border-box;
+}
+
+.nav-left { flex-shrink: 0; }
+.logo { height: 60px; object-fit: contain; }
+
+.nav-links { display: flex; gap: 1.5rem; align-items: center; }
+.nav-links a { position: relative; text-decoration: none; color: white; font-weight: 600; transition: color 0.25s ease; }
+.nav-links a:hover { color: #b19d8e; }
+
+/* Small circular badge used for cart counts / icons */
+.badge {
+  position: absolute;
+  top: -8px;
+  right: -10px;
+  background-color: #ff1d1d;
+  color: #fff;
+  border-radius: 50%;
+  padding: 2px 6px;
+  font-size: 11px;
+  line-height: 1;
+}
+
+/* Footer (global) */
+footer {
+  background-color: rgba(62, 39, 35, 0.8);
+  color: white;
+  padding: 1rem 2rem;
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+/* Product and grid utilities (kept global to avoid duplicates) */
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.product-card {
+  background: #fff;
+  border: 2px solid rgba(90,69,51,0.9);
+  padding: 10px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+}
+.product-image { width: 100%; max-height: 180px; object-fit: cover; border-radius: 8px; }
+
+.product-buttons { display:flex; gap: 10px; margin-top: 10px; }
+.product-buttons button {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 8px;
+  background: #5a4533;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+}
+.product-buttons button:hover { background: #b19d8e; }
+
+/* Cart utilities */
+.cart { padding: 2rem; background: #f9f9f9; border-radius: 10px; max-width: 900px; margin: auto; }
+.cart-table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+.cart-table th, .cart-table td { padding: 12px; border-bottom: 1px solid #ddd; text-align: center; vertical-align: middle; }
+.remove-btn { background: none; border: none; color: crimson; cursor: pointer; }
+.remove-btn:hover { color: darkred; }
+.proceed-btn { background: #ff9900; color: white; padding: 0.8rem 1.5rem; border-radius: 6px; border: none; cursor: pointer; font-weight:bold; }
+
+/* About / misc containers */
+.about { max-width: 800px; margin: auto; line-height: 1.7; color: #333; background: #fffdf8; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1); padding: 1.5rem; }
+
+/* Animations retained */
+#logo-anim-container { position: fixed; inset: 0; display:flex; justify-content:center; align-items:center; z-index:2; }
+#logo-anim { width:100px; animation: blinkAndZoom 3s ease-in-out forwards; }
+@keyframes blinkAndZoom { 0%{opacity:0;transform:scale(1)} 10%{opacity:1} 20%{opacity:0} 30%{opacity:1} 40%{opacity:0} 50%{opacity:1;transform:scale(1)} 70%{transform:scale(1.5)} 100%{transform:scale(50);opacity:0} }
+
+/* Small utility classes */
+.buttons { display:flex; gap:10px; }
+.buttons button { padding:6px 10px; font-size:14px; cursor:pointer; }
+
+/* Minor layout helpers used across components */
+.product-card h3, .cart-item-details h3 { margin:0; }

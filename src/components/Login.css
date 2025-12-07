@@ -1,0 +1,337 @@
+/* Success message for password reset */
+.login-success {
+  color: #1976d2;
+  margin-top: 8px;
+  font-weight: 600;
+  text-align: center;
+}
+
+/* Main login box */
+.login-main-box {
+  background: #fff;
+  border-radius: 24px;
+  box-shadow: 0 4px 32px rgba(74, 60, 53, 0.08);
+  padding: 40px 32px 32px 32px;
+  width: 90vw;
+  max-width: 1100px;
+  min-width: 600px;
+  margin: 40px auto;
+  display: flex;
+  flex-direction: row;
+  gap: 32px;
+  z-index: 2;
+  align-items: center;
+  position: relative;
+  flex: 1 0 auto;
+}
+.login-form-col {
+  flex: 1;
+  min-width: 320px;
+  max-width: 600px;
+}
+.login-register-col {
+  flex: 1;
+  min-width: 320px;
+  max-width: 600px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  padding-left: 24px;
+  border-left: 2px solid #000000;
+}
+@media (max-width: 900px) {
+  .login-main-box {
+    flex-direction: column;
+    gap: 24px;
+    padding: 32px 8px;
+    min-width: 0;
+    width: 98vw;
+    max-width: 98vw;
+  }
+  .login-register-col {
+    border-left: none;
+    padding-left: 0;
+    border-top: 1.5px solid #e0d6ce;
+    padding-top: 24px;
+    margin-top: 16px;
+  }
+}
+
+@media (min-width: 800px) {
+  .login-main-box {
+    flex-direction: row;
+    gap: 32px;
+    padding: 40px 32px 32px 32px;
+    max-width: 900px;
+  }
+  .login-register-col {
+    border-left: 1.5px solid #e0d6ce;
+    padding-left: 24px;
+    border-top: none;
+    padding-top: 0;
+    margin-top: 0;
+  }
+}
+
+.google-btn, .login-google-btn {
+  width: 100%;
+  background: #de5246;
+  color: #fff;
+  font-weight: 700;
+  border: none;
+  border-radius: 8px;
+  padding: 0;
+  font-size: 1.1rem;
+  margin-bottom: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 48px;
+  gap: 8px;
+  transition: background 0.2s;
+}
+.google-btn:hover, .login-google-btn:hover {
+  background: #c0392b;
+}
+
+.google-logo {
+  height: 24px;
+  width: 24px;
+  margin-right: 8px;
+  background: #fff;
+  border-radius: 4px;
+  padding: 2px;
+  object-fit: contain;
+}
+
+.register-btn {
+  width: 100%;
+  background: #10b3c6;
+  color: #fff;
+  font-weight: bold;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 0;
+  font-size: 1.1rem;
+  margin-top: 16px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.register-btn:hover {
+  background: #0e8fa0;
+}
+
+.input, .login-input {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 12px;
+  border: 1.5px solid #b19d8e;
+  border-radius: 8px;
+  font-size: 1rem;
+  background: #fff;
+  color: #4a3c35;
+  font-family: inherit;
+  transition: border 0.2s;
+}
+
+.login-error {
+  color: #e04b3c;
+  margin-top: 8px;
+  font-weight: bold;
+}
+
+.forgot-link {
+  color: #1976d2;
+  text-decoration: underline;
+  font-size: 1rem;
+  margin-top: 8px;
+  display: inline-block;
+}
+
+.login-form-col h2,
+.login-register-col h2 {
+  color: #3d2c1e;
+  font-size: 2rem;
+  margin-bottom: 8px;
+}
+.login-form-col p,
+.login-register-col p {
+  color: #3d2c1e;
+  font-size: 1.1rem;
+  margin-bottom: 16px;
+}
+/* Coffee theme login page styles */
+/* .login-bg {
+  min-height: 100vh;
+  background: #f7f3ef;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  position: relative;
+  padding-top: 140px;
+  box-sizing: border-box;
+} */
+
+/* .login-navbar {
+  z-index: 2;
+  position: sticky;
+  top: 0;
+} */
+
+.login-main-box {
+  margin-top: 200px;
+  background: #fff;
+  border-radius: 24px;
+  box-shadow: 0 4px 32px rgba(74, 60, 53, 0.08);
+  padding: 40px 32px 32px 32px;
+  max-width: 1200px;
+  width: 100%;
+  display: flex;
+  gap: 32px;
+  z-index: 2;
+  align-items: center;
+  position: relative;
+  flex: 1 0 auto;
+}
+
+.login-form-col {
+  flex: 1;
+  min-width: 400px;
+}
+
+/* .login-title {
+  margin-bottom: 8px;
+  color: #4a3c35;
+  font-family: 'Montserrat', 'Arial', sans-serif;
+  font-size: 2rem;
+  text-align: left;
+  letter-spacing: 1px;
+} */
+
+/* .login-desc {
+  margin-bottom: 16px;
+  color: #4a3c35;
+} */
+
+.login-input {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 16px;
+  border-radius: 8px;
+  border: 1.5px solid #b19d8e;
+  font-size: 1rem;
+  background: #f7f3ef;
+  color: #4a3c35;
+  font-family: inherit;
+  transition: border 0.2s;
+}
+
+.login-input:focus {
+  border: 1.5px solid #a67c52;
+  outline: none;
+}
+
+.login-btn {
+  width: 100%;
+  background: #FFD600;
+  color: #4a3c35;
+  font-weight: 700;
+  border: none;
+  border-radius: 8px;
+  padding: 14px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  margin-bottom: 10px;
+  transition: background 0.2s;
+}
+
+.login-btn:hover {
+  background: #e6b800;
+}
+
+/* .login-google-btn {
+  width: 100%;
+  background: #E04B3C;
+  color: #fff;
+  font-weight: 700;
+  border: none;
+  border-radius: 8px;
+  padding: 0;
+  font-size: 1.1rem;
+  margin-bottom: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 48px;
+  transition: background 0.2s;
+} */
+
+.login-google-btn:hover {
+  background: #c0392b;
+}
+
+/* .login-google-img {
+  height: 32px;
+  margin-right: 8px;
+  background: #fff;
+  border-radius: 4px;
+  padding: 2px;
+} */
+
+.login-forgot {
+  color: #1976d2;
+  text-decoration: underline;
+  font-size: 16px;
+}
+
+/* .login-new-customer {
+  flex: 1;
+  min-width: 300px;
+  padding-left: 24px;
+  border-left: 1px solid #eee;
+} */
+
+.login-create-btn {
+  width: 100%;
+  background: #10b3c6;
+  color: #fff;
+  font-weight: 700;
+  border: none;
+  border-radius: 8px;
+  padding: 14px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  margin-top: 16px;
+  transition: background 0.2s;
+}
+
+.login-create-btn:hover {
+  background: #0e8fa0;
+}
+
+.login-footer {
+  margin-top: auto;
+  z-index: 2;
+}
+/* styles/Login.css */
+
+/* .login-container {
+  max-width: 400px;
+  margin: auto;
+  padding: 2rem;
+  background: #fff;
+  border-radius: 1rem;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+  text-align: center;
+} */
+
+/* .login-box h2 {
+  margin-bottom: 1.5rem;
+  color: #333;
+} */
+
+/* Removed old .input, .btn, .btn.google, .btn.register, .divider blocks to avoid conflicts with new vibrant styles */

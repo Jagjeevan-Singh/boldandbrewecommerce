@@ -1,0 +1,67 @@
+/* AdminMain.css - Admin dashboard main layout and navbar */
+
+.admin-main-wrapper {
+  min-height: 100vh;
+  background: #f5ede6;
+  display: flex;
+  flex-direction: column;
+}
+
+.admin-navbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #4a3c35;
+  color: #fff;
+  padding: 0 32px;
+  height: 64px;
+  box-shadow: 0 2px 12px #bcae9e22;
+}
+.admin-navbar-logo {
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  display: flex;
+  align-items: center;
+}
+.admin-navbar-links {
+  display: flex;
+  gap: 18px;
+}
+.admin-navbar-link {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 1.08rem;
+  font-weight: 600;
+  padding: 8px 18px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.18s;
+}
+.admin-navbar-link.active, .admin-navbar-link:hover {
+  background: #7c5a3a;
+}
+.admin-main-content {
+  flex: 1;
+  padding: 32px 0 0 0;
+}
+@media (max-width: 700px) {
+  .admin-navbar {
+    flex-direction: column;
+    align-items: flex-start;
+    height: auto;
+    padding: 12px 10px;
+    gap: 8px;
+  }
+  .admin-navbar-logo {
+    font-size: 1.1rem;
+    margin-bottom: 6px;
+  }
+  .admin-navbar-links {
+    gap: 10px;
+  }
+  .admin-main-content {
+    padding: 18px 0 0 0;
+  }
+}

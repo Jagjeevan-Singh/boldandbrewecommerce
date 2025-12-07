@@ -1,0 +1,42 @@
+/* How to Make Section */
+.how-to-make-section {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0;
+  background: transparent;
+  margin: 0;
+}
+
+.how-to-make-image {
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: cover;
+}
+
+/* Responsive for mobile and tablet */
+@media (max-width: 768px) {
+  .how-to-make-section {
+    padding: 1rem 0;
+    margin-top: -40px;
+  }
+
+  .how-to-make-image {
+    width: 100%;
+    height: auto;
+  }
+}
+
+/* Responsive for small screens */
+@media (max-width: 480px) {
+  .how-to-make-section {
+    padding: 1rem 0;
+  }
+
+  .how-to-make-image {
+    width: 100%;
+    height: auto;
+  }
+}

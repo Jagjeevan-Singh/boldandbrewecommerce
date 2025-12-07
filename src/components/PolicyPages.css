@@ -1,0 +1,121 @@
+/* Terms and Conditions Modern Numbered Block Style */
+.terms-section {
+  margin-top: 2.2em;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5em;
+}
+.terms-block {
+  display: flex;
+  align-items: flex-start;
+  gap: 1.1em;
+  background: #f8f4ef;
+  border-radius: 12px;
+  box-shadow: 0 1px 8px #bcae9e11;
+  padding: 1.1em 1.3em 1.1em 1.1em;
+  font-size: 1.09em;
+  position: relative;
+}
+.terms-num {
+  font-size: 1.5em;
+  font-weight: 800;
+  color: #c39b2b;
+  min-width: 1.7em;
+  text-align: center;
+  font-family: 'Montserrat', 'Poppins', Arial, sans-serif;
+  margin-top: 0.1em;
+  flex-shrink: 0;
+}
+.terms-block b {
+  color: #7c5a3a;
+  font-size: 1.08em;
+  font-weight: 700;
+}
+.terms-block div {
+  line-height: 1.7;
+}
+@media (max-width: 600px) {
+  .policy-page-container {
+    padding: 18px 4vw 18px 4vw;
+  }
+  .terms-block {
+    font-size: 1em;
+    padding: 0.9em 0.7em 0.9em 0.7em;
+    gap: 0.7em;
+  }
+  .terms-num {
+    font-size: 1.15em;
+    min-width: 1.2em;
+  }
+}
+/* PolicyPages.css - Unified, theme-matching, designer style for policy pages */
+
+.policy-page-bg {
+  min-height: 60vh;
+  background: linear-gradient(120deg, #f5ede6 0%, #e7d7c9 100%);
+  padding: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.policy-page-container {
+  background: rgba(255,255,255,0.98);
+  border-radius: 22px;
+  box-shadow: 0 6px 32px #bcae9e33, 0 1.5px 0 #e0c9b6;
+  max-width: 700px;
+  width: 100%;
+  margin: 48px 0 64px 0;
+  padding: 40px 32px 32px 32px;
+  font-family: 'Poppins', 'Montserrat', Arial, sans-serif;
+  color: #4a3c35;
+  position: relative;
+}
+
+.policy-page-container h1 {
+  font-size: 2.3rem;
+  font-weight: 800;
+  color: #7c5a3a;
+  margin-bottom: 18px;
+  letter-spacing: 1px;
+  text-align: center;
+}
+
+.policy-page-container ul {
+  margin: 18px 0 0 0;
+  padding-left: 24px;
+  font-size: 1.13em;
+}
+
+.policy-page-container li {
+  margin-bottom: 10px;
+  line-height: 1.7;
+  position: relative;
+}
+
+.policy-page-container li:before {
+  content: '\2615';
+  color: #b9805a;
+  font-size: 1.1em;
+  margin-right: 10px;
+  position: absolute;
+  left: -24px;
+  top: 0.1em;
+}
+
+.policy-page-container p {
+  font-size: 1.15em;
+  color: #5a463a;
+  margin-bottom: 18px;
+  line-height: 1.7;
+}
+
+@media (max-width: 700px) {
+  .policy-page-container {
+    padding: 24px 8vw 24px 8vw;
+    margin: 32px 0 48px 0;
+  }
+  .policy-page-container h1 {
+    font-size: 1.5rem;
+  }
+}

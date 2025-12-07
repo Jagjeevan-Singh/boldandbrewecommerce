@@ -1,0 +1,288 @@
+import React, { useState, useEffect } from 'react';
+import { db, auth } from '../firebase';
+import { collection, addDoc, serverTimestamp, doc, getDoc, setDoc } from 'firebase/firestore';
+import { useNavigate } from 'react-router-dom';
+import './Checkout.css';
+
+// Ensure Razorpay SDK is loaded in public/index.html:
+// <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+const Checkout = ({ cartItems = [], total = 0 }) => {
+  const [form, setForm] = useState({
+    fullName: '',
+    address: '',
+    pincode: '',
+    city: '',
+    state: '',
+    email: '',
+    phone: '',
+    saveForFuture: false
+  });
+
+  const navigate = useNavigate();
+
+  // Fetch saved address on mount
+  useEffect(() => {
+    const fetchSavedAddress = async () => {
+      const user = auth.currentUser;
+      if (!user) return;
+      try {
+        const userDoc = await getDoc(doc(db, 'users', user.uid));
+        if (userDoc.exists() && userDoc.data().address) {
+          setForm(f => ({ ...f, ...userDoc.data().address }));
+        }
+      } catch (err) {
+        console.error('Error fetching saved address:', err);
+      }
+    };
+    fetchSavedAddress();
+  }, []);
+
+  const handleChange = e => {
+    const { name, value, type, checked } = e.target;
+    setForm(f => ({
+      ...f,
+      [name]: type === 'checkbox' ? checked : value
+    }));
+  };
+
+  const handleSubmit = async e => {
+    e.preventDefault();
+    const user = auth.currentUser;
+    if (!user) {
+      alert('You must be logged in to place an order.');
+      navigate('/login');
+      return;
+    }
+
+    if (!window.Razorpay) {
+      alert('Razorpay SDK not loaded. Please ensure the script tag is in your index.html.');
+      return;
+    }
+
+    // Use Firebase HTTPS Functions (production or emulator depending on flags)
+    const PROJECT_ID = import.meta.env.VITE_FIREBASE_PROJECT_ID;
+    const REGION = import.meta.env.VITE_FIREBASE_FUNCTIONS_REGION || 'us-central1';
+    const USE_EMULATOR = import.meta.env.VITE_USE_FIREBASE_EMULATOR === 'true';
+    const FUNCTIONS_BASE = USE_EMULATOR
+      ? `http://localhost:5001/${PROJECT_ID}/${REGION}`
+      : `https://${REGION}-${PROJECT_ID}.cloudfunctions.net`;
+
+    let order;
+    try {
+      // Call Firebase Functions backend to create the order
+      const res = await fetch(`${FUNCTIONS_BASE}/createRazorpayOrder`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amount: Math.round(total) /* rupees */ , currency: 'INR' })
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.error || 'Failed to create order');
+      }
+      order = await res.json();
+    } catch (err) {
+      console.error('Failed creating order on backend:', err);
+      alert('Could not initiate payment. Please try again.');
+      return;
+    }
+
+    // If server-created order exists, use that. Otherwise fall back to a client-only checkout (dev fallback).
+    const rzpKey = import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_live_RkNAPvahAqOEKr';
+
+    if (order && order.id) {
+      const options = {
+        key: rzpKey,
+        amount: order.amount,
+        currency: order.currency,
+        name: 'Bold & Brew',
+        description: 'Coffee Order Payment',
+        order_id: order.id,
+        prefill: { name: form.fullName, email: form.email },
+        theme: { color: '#b9805a' }
+      };
+
+      options.handler = function (response) {
+        console.log('✅ Razorpay payment successful, navigating immediately...');
+        
+        // Navigate immediately to order confirmation page
+        navigate('/order-confirmed', { 
+          replace: true,
+          state: { 
+            payment: { ...response, amount: Math.round(total * 100) }, 
+            checkout: { ...form, total },
+            serverOrderId: order.id,
+            needsVerification: true // flag for background verification
+          } 
+        });
+        
+        // Verify in background (non-blocking)
+        fetch(`${FUNCTIONS_BASE}/verifyRazorpayPayment`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            orderId: response.razorpay_order_id,
+            paymentId: response.razorpay_payment_id,
+            signature: response.razorpay_signature,
+            cartItems,
+            total,
+            shippingForm: form,
+            userId: user.uid,
+            saveForFuture: form.saveForFuture
+          })
+        }).then(verifyRes => verifyRes.json())
+          .then(verifyBody => {
+            if (verifyBody.status === 'failure') {
+              console.error('Background verification failed:', verifyBody);
+            } else {
+              console.log('✅ Background verification completed');
+            }
+          })
+          .catch(err => console.error('Background verification error:', err));
+      };
+
+      try {
+        const rzp = new window.Razorpay(options);
+        rzp.open();
+        return;
+      } catch (err) {
+        console.error('Payment initialization failed for server order:', err);
+      }
+    }
+
+    // --- Fallback: client-only checkout (development fallback, less secure) ---
+    try {
+      const clientOptions = {
+        key: rzpKey,
+        amount: Math.round(total * 100), // paise
+        currency: 'INR',
+        name: 'Bold & Brew',
+        description: 'Coffee Order Payment (client fallback)',
+        prefill: { name: form.fullName, email: form.email },
+        theme: { color: '#b9805a' }
+      };
+
+      clientOptions.handler = function (response) {
+        console.log('✅ Client payment successful, navigating immediately...');
+        
+        // Navigate immediately to order confirmation page
+        navigate('/order-confirmed', { 
+          replace: true,
+          state: { 
+            payment: { 
+              razorpay_payment_id: response.razorpay_payment_id, 
+              razorpay_order_id: response.razorpay_order_id, 
+              amount: Math.round(total * 100) 
+            }, 
+            checkout: { ...form, total } 
+          } 
+        });
+        
+        // Save order in background (non-blocking)
+        addDoc(collection(db, 'orders'), {
+          userId: user.uid,
+          items: cartItems,
+          date: serverTimestamp(),
+          total,
+          status: 'In Process',
+          shipping: form,
+          razorpayPaymentId: response.razorpay_payment_id,
+          razorpayOrderId: response.razorpay_order_id || null,
+          note: 'Saved from client-only checkout (no server verification)'
+        }).then(() => {
+          console.log('✅ Background order save completed');
+          if (form.saveForFuture) {
+            return setDoc(doc(db, 'users', user.uid), { address: form }, { merge: true });
+          }
+        }).catch(err => {
+          console.error('Background order save failed:', err);
+        });
+      };
+
+      const rzp = new window.Razorpay(clientOptions);
+      rzp.open();
+    } catch (err) {
+      console.error('Client checkout initialization failed:', err);
+      alert('Failed to initialize payment. Please try again.');
+    }
+  };
+
+  return (
+    <div className="checkout-container">
+      <h1 className="checkout-title">Shipping Address</h1>
+      <form className="checkout-form" onSubmit={handleSubmit} autoComplete="on">
+        <input
+          name="fullName"
+          placeholder="Full Name"
+          value={form.fullName}
+          onChange={handleChange}
+          required
+        />
+        <textarea
+          name="address"
+          placeholder="Full Address"
+          value={form.address}
+          onChange={handleChange}
+          required
+          rows={2}
+        />
+        <div className="row">
+          <input
+            name="pincode"
+            placeholder="Pincode"
+            value={form.pincode}
+            onChange={handleChange}
+            required
+            pattern="[0-9]{6}"
+          />
+          <input
+            name="city"
+            placeholder="City"
+            value={form.city}
+            onChange={handleChange}
+            required
+          />
+        </div>
+        <input
+          name="state"
+          placeholder="State"
+          value={form.state}
+          onChange={handleChange}
+          required
+        />
+        <input
+          name="email"
+          placeholder="Email"
+          value={form.email}
+          onChange={handleChange}
+          required
+          type="email"
+        />
+        <input
+          name="phone"
+          placeholder="Phone Number"
+          value={form.phone}
+          onChange={handleChange}
+          required
+          type="tel"
+          pattern="[0-9]{10}"
+          title="Please enter a 10-digit phone number"
+        />
+        <div className="save-future-row">
+          <input
+            type="checkbox"
+            name="saveForFuture"
+            checked={form.saveForFuture}
+            onChange={handleChange}
+          />
+          <span>Save this address for future checkout</span>
+        </div>
+        <button type="submit">
+          Save & Continue <span style={{ fontSize: '1.3em', marginLeft: 6 }}>&#8594;</span>
+        </button>
+      </form>
+    </div>
+  );
+};
+
+export default Checkout;

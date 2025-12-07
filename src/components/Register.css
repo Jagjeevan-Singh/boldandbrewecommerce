@@ -1,0 +1,93 @@
+.register-bg {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  position: relative;
+  padding-top: 2px; /* ensure header overlays background */
+  /* Explicitly set a solid background and clear any image layer to avoid missing /assets/coffee-bg.png */
+  background: #f7f3ef;
+  background-image: none;
+}
+
+
+.register-box {
+  background: #fff;
+  border-radius: 24px;
+  box-shadow: 0 4px 32px rgba(74, 60, 53, 0.08);
+  padding: 40px 32px 32px 32px;
+  max-width: 500px;
+  max-height: 600px;
+  width: 100%;
+  border: 2px solid #b19d8e;
+  margin-top: 100px;
+  margin-bottom: 80px;
+}
+
+.register-title {
+  margin-bottom: 18px;
+  color: #4a3c35;
+  font-family: 'Montserrat', 'Arial', sans-serif;
+  font-size: 2rem;
+  text-align: center;
+  letter-spacing: 1px;
+}
+
+.register-input {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 18px;
+  border-radius: 8px;
+  border: 1.5px solid #b19d8e;
+  font-size: 1rem;
+  background: #f7f3ef;
+  color: #4a3c35;
+  font-family: inherit;
+  transition: border 0.2s;
+}
+
+.register-input:focus {
+  border: 1.5px solid #a67c52;
+  outline: none;
+}
+
+.register-btn {
+  width: 100%;
+  background: #FFD600;
+  color: #4a3c35;
+  font-weight: 700;
+  border: none;
+  border-radius: 8px;
+  padding: 14px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  margin-bottom: 10px;
+  transition: background 0.2s;
+}
+
+.register-btn:hover {
+  background: #e6b800;
+}
+
+.register-back-btn {
+  width: 100%;
+  background: #eee;
+  color: #4a3c35;
+  border: none;
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 1rem;
+  cursor: pointer;
+  margin-top: 8px;
+  transition: background 0.2s;
+}
+
+.register-back-btn:hover {
+  background: #e7d7c9;
+}
+.register-footer {
+  width: 100%;
+  margin-top: auto;
+  z-index: 2;
+}

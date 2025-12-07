@@ -1,0 +1,46 @@
+.reviews-bar-breakdown {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 180px;
+  width: 100%;
+  max-width: 260px;
+}
+.reviews-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.reviews-bar-label {
+  width: 32px;
+  font-size: 1.1rem;
+  color: #222;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+.reviews-bar-track {
+  flex: 1;
+  height: 14px;
+  background: #e5e5e5;
+  border-radius: 8px;
+  overflow: hidden;
+  margin: 0 8px;
+  position: relative;
+}
+.reviews-bar-fill {
+  height: 100%;
+  background: #FFD700;
+  border-radius: 8px 0 0 8px;
+  transition: width 0.3s;
+}
+.reviews-bar-count {
+  min-width: 36px;
+  background: #fff;
+  border-radius: 20px;
+  padding: 2px 12px;
+  font-size: 1.1rem;
+  color: #222;
+  text-align: center;
+  box-shadow: 0 1px 4px #0001;
+}
