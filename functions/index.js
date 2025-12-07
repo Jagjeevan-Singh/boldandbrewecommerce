@@ -219,9 +219,13 @@ async function getShiprocketToken() {
     console.log('Fetching new Shiprocket token...');
     
     // Get credentials from Firebase config (set via CLI)
-    const shiprocketConfig = functions.config().shiprocket;
+    const shiprocketConfig = functions.config().shiprocket || {
+      email: process.env.SHIPROCKET_EMAIL,
+      password: process.env.SHIPROCKET_PASSWORD,
+    };
+
     if (!shiprocketConfig || !shiprocketConfig.email || !shiprocketConfig.password) {
-      throw new Error('Shiprocket credentials not configured. Run: firebase functions:config:set shiprocket.email="..." shiprocket.password="..."');
+      throw new Error('Shiprocket credentials not configured. Set firebase functions config or env SHIPROCKET_EMAIL and SHIPROCKET_PASSWORD');
     }
     
     // Call Shiprocket Auth API
