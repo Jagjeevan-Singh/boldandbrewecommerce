@@ -21,6 +21,37 @@
   gap: 24px;
 }
 
+.saved-address-picker {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.saved-address-picker .saved-label {
+  font-weight: 600;
+  color: #2e2a27;
+  font-size: 0.95rem;
+  letter-spacing: 0.1px;
+}
+
+.saved-address-picker select {
+  width: 100%;
+  padding: 14px 12px;
+  border-radius: 10px;
+  border: 1.5px solid #b19d8e;
+  background: linear-gradient(135deg, #faf9f7 0%, #f3eee7 100%);
+  font-size: 1rem;
+  font-weight: 600;
+  color: #2e2a27;
+  transition: border 0.2s, box-shadow 0.2s;
+}
+
+.saved-address-picker select:focus {
+  outline: none;
+  border-color: #a67c52;
+  box-shadow: 0 0 0 3px rgba(166, 124, 82, 0.2);
+}
+
 .checkout-form label {
   font-size: 1.1rem;
   font-weight: 500;
@@ -85,6 +116,65 @@
   gap: 10px;
   cursor: pointer;
   transition: background 0.2s;
+}
+
+.save-label-row {
+  display: grid;
+  gap: 10px;
+}
+
+.save-label-row .label-options {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.save-label-row select,
+.save-label-row input[type="text"] {
+  padding: 12px 12px;
+  border-radius: 8px;
+  border: 1.5px solid #b19d8e;
+  background: #faf9f7;
+  font-size: 1rem;
+  min-width: 140px;
+}
+
+.save-label-row select:focus,
+.save-label-row input[type="text"]:focus {
+  outline: none;
+  border-color: #a67c52;
+}
+
+@media (max-width: 768px) {
+  .checkout-container {
+    margin: 20px 12px;
+    padding: 24px 16px;
+    padding-top: 60px;
+  }
+  .checkout-title {
+    font-size: 1.6rem;
+    margin-bottom: 18px;
+  }
+  .checkout-form {
+    gap: 16px;
+  }
+  .checkout-form .row {
+    flex-direction: column;
+    gap: 12px;
+  }
+  .saved-address-picker select,
+  .checkout-form input,
+  .checkout-form textarea,
+  .save-label-row select,
+  .save-label-row input[type="text"] {
+    font-size: 1rem;
+    padding: 12px 12px;
+  }
+  .checkout-form button {
+    padding: 14px 0;
+    font-size: 1.05rem;
+  }
 }
 
 .checkout-form button:hover {

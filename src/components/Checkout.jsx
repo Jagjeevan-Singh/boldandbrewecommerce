@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { db, auth } from '../firebase';
+import { onAuthStateChanged } from 'firebase/auth';
 import { collection, addDoc, serverTimestamp, doc, getDoc, setDoc, getDocs } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
 import './Checkout.css';
@@ -42,11 +43,9 @@ const Checkout = ({ cartItems = [], total = 0 }) => {
     }));
   };
 
-  // Fetch saved address on mount
+  // Fetch saved addresses when auth is ready
   useEffect(() => {
-    const fetchSavedAddress = async () => {
-      const user = auth.currentUser;
-      if (!user) return;
+    const fetchSavedAddress = async (user) => {
       try {
         const userDocRef = doc(db, 'users', user.uid);
         const userDocSnap = await getDoc(userDocRef);
@@ -70,7 +69,11 @@ const Checkout = ({ cartItems = [], total = 0 }) => {
         console.error('Error fetching saved address:', err);
       }
     };
-    fetchSavedAddress();
+
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) fetchSavedAddress(user);
+    });
+    return () => unsubscribe();
   }, []);
 
   const handleChange = e => {
@@ -95,15 +98,19 @@ const Checkout = ({ cartItems = [], total = 0 }) => {
 
   const persistSavedAddress = async (userId, addressData) => {
     const label = effectiveLabel();
+    const slug = label.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'saved';
     const payload = {
       ...addressData,
       label,
-      createdAt: serverTimestamp()
+      updatedAt: serverTimestamp(),
     };
     try {
-      const addrRef = collection(db, 'users', userId, 'addresses');
-      const newDoc = await addDoc(addrRef, payload);
-      setSavedAddresses((prev) => [{ id: newDoc.id, ...payload }, ...prev]);
+      const addrDocRef = doc(db, 'users', userId, 'addresses', slug);
+      await setDoc(addrDocRef, payload, { merge: true });
+      setSavedAddresses((prev) => {
+        const others = prev.filter((a) => a.id !== slug);
+        return [{ id: slug, ...payload }, ...others];
+      });
       await setDoc(doc(db, 'users', userId), { address: addressData }, { merge: true });
     } catch (err) {
       console.error('Failed to save address for future:', err);
@@ -122,6 +129,15 @@ const Checkout = ({ cartItems = [], total = 0 }) => {
     if (!window.Razorpay) {
       alert('Razorpay SDK not loaded. Please ensure the script tag is in your index.html.');
       return;
+    }
+
+    // Save address immediately if requested (so it appears even if payment flow is abandoned)
+    if (form.saveForFuture) {
+      try {
+        await persistSavedAddress(user.uid, form);
+      } catch (err) {
+        console.error('Pre-save address failed (continuing to payment):', err);
+      }
     }
 
     // Use Firebase HTTPS Functions (production or emulator depending on flags)
@@ -180,10 +196,6 @@ const Checkout = ({ cartItems = [], total = 0 }) => {
           } 
         });
 
-        if (form.saveForFuture) {
-          persistSavedAddress(user.uid, form);
-        }
-        
         // Verify in background (non-blocking)
         fetch(`${FUNCTIONS_BASE}/verifyRazorpayPayment`, {
           method: 'POST',
@@ -259,9 +271,6 @@ const Checkout = ({ cartItems = [], total = 0 }) => {
           note: 'Saved from client-only checkout (no server verification)'
         }).then(() => {
           console.log('✅ Background order save completed');
-          if (form.saveForFuture) {
-            return persistSavedAddress(user.uid, form);
-          }
         }).catch(err => {
           console.error('Background order save failed:', err);
         });
