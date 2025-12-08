@@ -120,9 +120,12 @@ export default function OrderConfirmed() {
       
       try {
         console.log('📧 Preparing to send order confirmation email to:', recipient);
+        console.log('📧 Current location:', window.location.hostname);
+        console.log('📧 All import.meta.env VITE_ keys:', Object.keys(import.meta.env).filter(k => k.startsWith('VITE_')));
         
         // Initialize EmailJS with public key
         const PUBLIC_KEY = import.meta.env.VITE_EMAILJS_PUBLIC_KEY || 'Y3m1ic5-mSSYUkTKX';
+        console.log('📧 Using PUBLIC_KEY:', PUBLIC_KEY ? `${PUBLIC_KEY.substring(0, 5)}...` : 'fallback');
         emailjs.init(PUBLIC_KEY);
         console.log('📧 EmailJS initialized with public key');
         
@@ -208,9 +211,14 @@ export default function OrderConfirmed() {
         });
         
         console.log('📧 Attempting to send email via EmailJS...');
-        console.log('📧 All import.meta.env vars:', import.meta.env);
+        console.log('📧 EmailJS Config being used:', {
+          SERVICE_ID: SERVICE_ID ? `${SERVICE_ID.substring(0, 10)}...` : 'missing',
+          TEMPLATE_ID: TEMPLATE_ID ? `${TEMPLATE_ID.substring(0, 10)}...` : 'missing',
+          PUBLIC_KEY: PUBLIC_KEY ? `${PUBLIC_KEY.substring(0, 5)}...` : 'missing'
+        });
         
         try {
+          console.log('📧 Sending email with emailjs.send()...');
           const result = await emailjs.send(
             SERVICE_ID,
             TEMPLATE_ID,
@@ -236,32 +244,43 @@ export default function OrderConfirmed() {
           if (result?.status === 200 || result?.text === 'OK') {
             setEmailSent(true);
             console.log('✅ Order confirmation email sent successfully to:', recipient);
-            console.log('📧 EmailJS Response:', result);
+            console.log('📧 Full EmailJS Response:', result);
             // Show success message to user
             alert(`✅ Order confirmation email sent to ${recipient}`);
           } else {
-            console.warn('⚠️ EmailJS returned unexpected response:', result?.status, result);
-            alert(`⚠️ Email may not have been sent. Status: ${result?.status}`);
+            console.warn('⚠️ EmailJS returned unexpected response:', {
+              status: result?.status,
+              text: result?.text,
+              fullResponse: result
+            });
+            alert(`⚠️ Email may not have been sent. Status: ${result?.status || result?.text}`);
           }
         } catch (emailError) {
-          console.error('❌ EmailJS send error:', emailError);
-          console.error('EmailJS error details:', {
+          console.error('❌ EmailJS send error - Full Error Object:', emailError);
+          console.error('Email error details:', {
             message: emailError?.message,
             text: emailError?.text,
             status: emailError?.status,
-            name: emailError?.name
+            name: emailError?.name,
+            response: emailError?.response,
+            toString: emailError?.toString()
           });
-          alert(`❌ Failed to send email: ${emailError?.text || emailError?.message || 'Unknown error'}`);
-          throw emailError; // Re-throw to be caught by outer catch
+          console.error('Attempted to send to:', {
+            SERVICE_ID,
+            TEMPLATE_ID,
+            recipient
+          });
+          alert(`❌ Failed to send email: ${emailError?.text || emailError?.message || JSON.stringify(emailError)}`);
+          // Don't re-throw - continue execution
         }
       } catch (err) {
-        console.error('❌ Failed to send order confirmation email:', err);
-        console.error('Error details:', {
-          message: err.message,
-          text: err.text,
-          status: err.status,
-          name: err.name,
-          stack: err.stack
+        console.error('❌ Outer catch - Failed to send order confirmation email:', err);
+        console.error('Outer error details:', {
+          message: err?.message,
+          text: err?.text,
+          status: err?.status,
+          name: err?.name,
+          toString: err?.toString()
         });
       }
     };
