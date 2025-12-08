@@ -19,22 +19,32 @@ const OrdersPage = () => {
 			setLoading(true);
 			try {
 				const user = auth.currentUser;
-				if (user) {
-					const uDoc = await getDoc(doc(db, 'users', user.uid));
-					const role = uDoc.exists() && uDoc.data().role;
-					if (role === 'owner') {
-						setIsAdmin(true);
-						const q = query(collection(db, 'orders'), orderBy('date', 'desc'));
-						const snap = await getDocs(q);
-						if (!mounted) return;
-						const list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-						setOrders(list);
-						return;
+				if (!user) {
+					if (mounted) {
+						setError('Please log in to view orders');
+						setLoading(false);
 					}
+					return;
 				}
-				const userOrders = await getOrdersForUser();
-				if (!mounted) return;
-				setOrders(userOrders);
+				
+				// Check if user is admin
+				const uDoc = await getDoc(doc(db, 'users', user.uid));
+				const role = uDoc.exists() && uDoc.data().role;
+				
+				if (role === 'owner') {
+					// Admin: show all orders
+					setIsAdmin(true);
+					const q = query(collection(db, 'orders'), orderBy('date', 'desc'));
+					const snap = await getDocs(q);
+					if (!mounted) return;
+					const list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+					setOrders(list);
+				} else {
+					// Regular user: show only their orders
+					const userOrders = await getOrdersForUser();
+					if (!mounted) return;
+					setOrders(userOrders);
+				}
 			} catch (err) {
 				if (!mounted) return;
 				console.error('Failed to load orders:', err);

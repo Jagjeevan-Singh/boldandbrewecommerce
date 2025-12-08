@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import emailjs from '@emailjs/browser';
 import { useLocation, useNavigate } from "react-router-dom";
 import { collection, addDoc, serverTimestamp, query, where, orderBy, limit, getDocs } from "firebase/firestore";
-import { db } from "../firebase.js";
+import { db, auth } from "../firebase.js";
 import { getProductImageUrl } from "../utils/imageUtils.js";
 import './OrderConfirmed.css';
 
@@ -37,7 +37,9 @@ export default function OrderConfirmed() {
         }
 
         // Not found — save a lightweight client-side order document (use same field names as server)
+        const user = auth.currentUser;
         const docRef = await addDoc(collection(db, "orders"), {
+          userId: user?.uid || null,
           items: checkout?.cartItems || checkout?.items || [],
           date: serverTimestamp(),
           total: payment?.amount ? payment.amount / 100 : (checkout?.total ?? checkout?.cartTotal ?? 0),
