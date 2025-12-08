@@ -157,15 +157,22 @@ export default function OrderConfirmed() {
         });
         
         const html = buildEmailHtml({ email: recipient, orderId, orders, cost, websiteUrl, customerName, address, paymentStatus });
-        const SERVICE_ID = import.meta.env?.VITE_EMAILJS_SERVICE_ID || 'service_ugu0eah';
-        const TEMPLATE_ID = import.meta.env?.VITE_EMAILJS_TEMPLATE_ID || 'template_zjf5zsm';
-        const PUBLIC_KEY = import.meta.env?.VITE_EMAILJS_PUBLIC_KEY || 'Y3m1ic5-mSSYUkTKX';
+        
+        // EmailJS Configuration - Ensure proper fallback
+        const SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID || 'service_ugu0eah';
+        const TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID || 'template_zjf5zsm';
+        const PUBLIC_KEY = import.meta.env.VITE_EMAILJS_PUBLIC_KEY || 'Y3m1ic5-mSSYUkTKX';
         
         console.log('📧 EmailJS Config:', {
           SERVICE_ID,
           TEMPLATE_ID,
-          PUBLIC_KEY: PUBLIC_KEY ? 'present' : 'missing',
-          recipientCount: 1
+          PUBLIC_KEY: PUBLIC_KEY ? `${PUBLIC_KEY.substring(0, 5)}...` : 'missing',
+          recipientCount: 1,
+          envVarsAvailable: {
+            SERVICE_ID: !!import.meta.env.VITE_EMAILJS_SERVICE_ID,
+            TEMPLATE_ID: !!import.meta.env.VITE_EMAILJS_TEMPLATE_ID,
+            PUBLIC_KEY: !!import.meta.env.VITE_EMAILJS_PUBLIC_KEY
+          }
         });
         
         // Prepare detailed order items text
@@ -175,37 +182,42 @@ export default function OrderConfirmed() {
         
         console.log('📧 Attempting to send email via EmailJS...');
         
-        const result = await emailjs.send(
-          SERVICE_ID,
-          TEMPLATE_ID,
-          {
-            to_email: recipient,
-            reply_to: recipient,
-            to_name: customerName,
-            order_id: orderId,
-            customer_name: customerName,
-            customer_email: recipient,
-            customer_address: address,
-            payment_status: paymentStatus,
-            order_items: orderItemsText,
-            orders: orders,
-            cost: cost,
-            shipping_amount: cost.shipping,
-            total_amount: cost.total,
-            website_url: websiteUrl,
-            html_content: html,
-          },
-          PUBLIC_KEY
-        );
-        
-        console.log('📧 EmailJS raw response:', result);
-        
-        if (result?.status === 200) {
-          setEmailSent(true);
-          console.log('✅ Order confirmation email sent successfully to:', recipient);
-          console.log('📧 EmailJS Response:', result);
-        } else {
-          console.warn('⚠️ EmailJS returned non-200 status:', result?.status, result);
+        try {
+          const result = await emailjs.send(
+            SERVICE_ID,
+            TEMPLATE_ID,
+            {
+              to_email: recipient,
+              reply_to: recipient,
+              to_name: customerName,
+              order_id: orderId,
+              customer_name: customerName,
+              customer_email: recipient,
+              customer_address: address,
+              payment_status: paymentStatus,
+              order_items: orderItemsText,
+              orders: orders,
+              cost: cost,
+              shipping_amount: cost.shipping,
+              total_amount: cost.total,
+              website_url: websiteUrl,
+              html_content: html,
+            },
+            PUBLIC_KEY
+          );
+          
+          console.log('📧 EmailJS raw response:', result);
+          
+          if (result?.status === 200) {
+            setEmailSent(true);
+            console.log('✅ Order confirmation email sent successfully to:', recipient);
+            console.log('📧 EmailJS Response:', result);
+          } else {
+            console.warn('⚠️ EmailJS returned non-200 status:', result?.status, result);
+          }
+        } catch (emailError) {
+          console.error('❌ EmailJS send error:', emailError);
+          throw emailError; // Re-throw to be caught by outer catch
         }
       } catch (err) {
         console.error('❌ Failed to send order confirmation email:', err);
