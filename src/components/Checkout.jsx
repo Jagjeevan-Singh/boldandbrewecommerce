@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { db, auth } from '../firebase';
-import { collection, addDoc, serverTimestamp, doc, getDoc, setDoc } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, doc, getDoc, setDoc, getDocs } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
 import './Checkout.css';
 
@@ -19,7 +19,28 @@ const Checkout = ({ cartItems = [], total = 0 }) => {
     saveForFuture: false
   });
 
+  const [savedAddresses, setSavedAddresses] = useState([]);
+  const [selectedAddressId, setSelectedAddressId] = useState('');
+  const [addressLabel, setAddressLabel] = useState('Home');
+  const [customLabel, setCustomLabel] = useState('');
+
   const navigate = useNavigate();
+
+  const applyAddressToForm = (addr) => {
+    if (!addr) return;
+    const { fullName, address, pincode, city, state, email, phone } = addr;
+    setForm((f) => ({
+      ...f,
+      fullName: fullName || '',
+      address: address || '',
+      pincode: pincode || '',
+      city: city || '',
+      state: state || '',
+      email: email || '',
+      phone: phone || '',
+      saveForFuture: false
+    }));
+  };
 
   // Fetch saved address on mount
   useEffect(() => {
@@ -27,9 +48,23 @@ const Checkout = ({ cartItems = [], total = 0 }) => {
       const user = auth.currentUser;
       if (!user) return;
       try {
-        const userDoc = await getDoc(doc(db, 'users', user.uid));
-        if (userDoc.exists() && userDoc.data().address) {
-          setForm(f => ({ ...f, ...userDoc.data().address }));
+        const userDocRef = doc(db, 'users', user.uid);
+        const userDocSnap = await getDoc(userDocRef);
+        const legacyAddress = userDocSnap.exists() && userDocSnap.data().address
+          ? { id: 'legacy', label: 'Default', ...userDocSnap.data().address }
+          : null;
+
+        const addressesSnap = await getDocs(collection(db, 'users', user.uid, 'addresses'));
+        const list = addressesSnap.docs.map((d) => ({ id: d.id, ...(d.data() || {}) }));
+        const combined = list.length ? list : (legacyAddress ? [legacyAddress] : []);
+        setSavedAddresses(combined);
+
+        if (combined.length && !form.fullName) {
+          applyAddressToForm(combined[0]);
+          setSelectedAddressId(combined[0].id || '');
+        } else if (legacyAddress && !form.fullName) {
+          applyAddressToForm(legacyAddress);
+          setSelectedAddressId('legacy');
         }
       } catch (err) {
         console.error('Error fetching saved address:', err);
@@ -44,6 +79,35 @@ const Checkout = ({ cartItems = [], total = 0 }) => {
       ...f,
       [name]: type === 'checkbox' ? checked : value
     }));
+  };
+
+  const handleSelectSaved = (e) => {
+    const id = e.target.value;
+    setSelectedAddressId(id);
+    const found = savedAddresses.find((a) => a.id === id);
+    if (found) applyAddressToForm(found);
+  };
+
+  const effectiveLabel = () => {
+    if (addressLabel === 'Other') return customLabel.trim() || 'Other';
+    return addressLabel || 'Home';
+  };
+
+  const persistSavedAddress = async (userId, addressData) => {
+    const label = effectiveLabel();
+    const payload = {
+      ...addressData,
+      label,
+      createdAt: serverTimestamp()
+    };
+    try {
+      const addrRef = collection(db, 'users', userId, 'addresses');
+      const newDoc = await addDoc(addrRef, payload);
+      setSavedAddresses((prev) => [{ id: newDoc.id, ...payload }, ...prev]);
+      await setDoc(doc(db, 'users', userId), { address: addressData }, { merge: true });
+    } catch (err) {
+      console.error('Failed to save address for future:', err);
+    }
   };
 
   const handleSubmit = async e => {
@@ -115,6 +179,10 @@ const Checkout = ({ cartItems = [], total = 0 }) => {
             needsVerification: true // flag for background verification
           } 
         });
+
+        if (form.saveForFuture) {
+          persistSavedAddress(user.uid, form);
+        }
         
         // Verify in background (non-blocking)
         fetch(`${FUNCTIONS_BASE}/verifyRazorpayPayment`, {
@@ -192,7 +260,7 @@ const Checkout = ({ cartItems = [], total = 0 }) => {
         }).then(() => {
           console.log('✅ Background order save completed');
           if (form.saveForFuture) {
-            return setDoc(doc(db, 'users', user.uid), { address: form }, { merge: true });
+            return persistSavedAddress(user.uid, form);
           }
         }).catch(err => {
           console.error('Background order save failed:', err);
@@ -210,6 +278,19 @@ const Checkout = ({ cartItems = [], total = 0 }) => {
   return (
     <div className="checkout-container">
       <h1 className="checkout-title">Shipping Address</h1>
+      {savedAddresses.length > 0 && (
+        <div className="saved-address-picker">
+          <label className="saved-label">Use saved address</label>
+          <select value={selectedAddressId} onChange={handleSelectSaved}>
+            <option value="">Select saved address</option>
+            {savedAddresses.map((addr) => (
+              <option key={addr.id} value={addr.id}>
+                {addr.label || 'Saved'} • {addr.fullName || addr.name || ''} • {addr.pincode || ''}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
       <form className="checkout-form" onSubmit={handleSubmit} autoComplete="on">
         <input
           name="fullName"
@@ -277,6 +358,27 @@ const Checkout = ({ cartItems = [], total = 0 }) => {
           />
           <span>Save this address for future checkout</span>
         </div>
+        {form.saveForFuture && (
+          <div className="save-label-row">
+            <label>Label</label>
+            <div className="label-options">
+              <select value={addressLabel} onChange={(e) => setAddressLabel(e.target.value)}>
+                <option value="Home">Home</option>
+                <option value="Work">Work</option>
+                <option value="Other">Other</option>
+              </select>
+              {addressLabel === 'Other' && (
+                <input
+                  type="text"
+                  placeholder="Custom label"
+                  value={customLabel}
+                  onChange={(e) => setCustomLabel(e.target.value)}
+                  maxLength={20}
+                />
+              )}
+            </div>
+          </div>
+        )}
         <button type="submit">
           Save & Continue <span style={{ fontSize: '1.3em', marginLeft: 6 }}>&#8594;</span>
         </button>
