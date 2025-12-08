@@ -22,22 +22,18 @@
 .recipe-grid {
   display: flex;
   gap: 32px;
-  justify-content: flex-start;
-  flex-wrap: nowrap;
-  overflow-x: auto;
-  overflow-y: hidden;
-  padding: 0 16px 12px 16px;
-  scrollbar-width: thin;
-  scrollbar-color: #d2691e #f7f3ef;
+  justify-content: center;
+  flex-wrap: wrap;
+  max-width: 1200px;
   margin: 0 auto;
-  -webkit-overflow-scrolling: touch;
+  padding: 0 16px 12px 16px;
 }
 
 .recipe-card {
   position: relative;
-  min-width: 220px;
+  min-width: 280px;
   max-width: 320px;
-  width: 80vw;
+  flex: 1 1 280px;
   cursor: pointer;
   text-align: center;
   transition: transform 0.22s cubic-bezier(.4,1.4,.6,1);
@@ -118,15 +114,17 @@
     scrollbar-width: thin;
     scrollbar-color: #d2691e #f7f3ef;
     justify-content: flex-start;
+    -webkit-overflow-scrolling: touch;
   }
   .recipe-card {
     min-width: 180px;
     max-width: 80vw;
     width: 80vw;
+    flex: 0 0 auto;
     padding: 14px 6px 14px 6px;
   }
   .recipe-image-container {
-  aspect-ratio: 1/1;
+    aspect-ratio: 1/1;
     height: auto;
   }
 }
