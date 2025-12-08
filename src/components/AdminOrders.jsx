@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { db } from '../firebase';
+import { db, auth } from '../firebase';
 import { collection, getDocs, doc, getDoc, updateDoc, query, orderBy } from 'firebase/firestore';
 import { getProductImageUrl } from '../utils/imageUtils.js';
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { app } from '../firebase';
+import { useNavigate } from 'react-router-dom';
 
 const FUNCTION_REGION = 'asia-south1';
 const functionsInstance = getFunctions(app, FUNCTION_REGION);
@@ -23,8 +24,38 @@ export default function AdminOrders() {
   const [pickupError, setPickupError] = useState(null);
   const [selectedPickup, setSelectedPickup] = useState('');
   const [packageDimensions, setPackageDimensions] = useState({});
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [authChecked, setAuthChecked] = useState(false);
+  const navigate = useNavigate();
+
+  // Check if user is admin
+  useEffect(() => {
+    const checkAdmin = async () => {
+      try {
+        const user = auth.currentUser;
+        if (!user) {
+          navigate('/login');
+          return;
+        }
+        const userDoc = await getDoc(doc(db, 'users', user.uid));
+        const isAdminUser = userDoc.exists() && userDoc.data().role === 'owner';
+        if (!isAdminUser) {
+          navigate('/');
+          return;
+        }
+        setIsAdmin(true);
+        setAuthChecked(true);
+      } catch (err) {
+        console.error('Admin check failed:', err);
+        navigate('/');
+      }
+    };
+    checkAdmin();
+  }, [navigate]);
 
   useEffect(() => {
+    if (!authChecked || !isAdmin) return;
+
     const fetchOrdersAndUsers = async () => {
       setLoading(true);
       try {
@@ -53,7 +84,7 @@ export default function AdminOrders() {
     };
 
     fetchOrdersAndUsers();
-  }, []);
+  }, [authChecked, isAdmin]);
 
   // Fetch pickup addresses for diagnostic & selection
   useEffect(() => {
@@ -115,6 +146,22 @@ export default function AdminOrders() {
       alert('Status updated successfully!');
     } catch (err) {
       alert('Failed to update status: ' + (err.message || err));
+    } finally {
+      setSavingId(null);
+    }
+  };
+
+  const cancelOrder = async (orderId) => {
+    if (!window.confirm('Are you sure you want to cancel this order?')) return;
+    
+    setSavingId(orderId);
+    try {
+      const ref = doc(db, 'orders', orderId);
+      await updateDoc(ref, { status: 'Cancelled' });
+      setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: 'Cancelled' } : o));
+      alert('Order cancelled successfully!');
+    } catch (err) {
+      alert('Failed to cancel order: ' + (err.message || err));
     } finally {
       setSavingId(null);
     }
@@ -301,6 +348,8 @@ export default function AdminOrders() {
     }
   };
 
+  if (!authChecked) return <div className="admin-orders-loading">Checking permissions...</div>;
+  if (!isAdmin) return <div className="admin-orders-loading">Access denied. Admin only.</div>;
   if (loading) return <div className="admin-orders-loading">Loading orders...</div>;
 
   return (
@@ -406,6 +455,16 @@ export default function AdminOrders() {
                 >
                   {shippingOrder === order.id ? 'Creating Shipment...' : 'Create Shiprocket Order'}
                 </button>
+                {order.status !== 'Cancelled' && (
+                  <button 
+                    className="admin-cancel-btn" 
+                    onClick={() => cancelOrder(order.id)}
+                    disabled={savingId === order.id}
+                    title="Cancel this order"
+                  >
+                    {savingId === order.id ? 'Cancelling...' : 'Cancel Order'}
+                  </button>
+                )}
               </div>
             </div>
           ))}
