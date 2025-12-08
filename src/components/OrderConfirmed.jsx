@@ -121,6 +121,11 @@ export default function OrderConfirmed() {
       try {
         console.log('📧 Preparing to send order confirmation email to:', recipient);
         
+        // Initialize EmailJS with public key
+        const PUBLIC_KEY = import.meta.env.VITE_EMAILJS_PUBLIC_KEY || 'Y3m1ic5-mSSYUkTKX';
+        emailjs.init(PUBLIC_KEY);
+        console.log('📧 EmailJS initialized with public key');
+        
         const orders = (orderData.items || []).map((it) => ({
           name: it.name || it.productName || it.title || it.product?.name || 'Item',
           units: it.quantity || it.qty || 1,
@@ -161,13 +166,13 @@ export default function OrderConfirmed() {
         // EmailJS Configuration - Ensure proper fallback
         const SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID || 'service_ugu0eah';
         const TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID || 'template_zjf5zsm';
-        const PUBLIC_KEY = import.meta.env.VITE_EMAILJS_PUBLIC_KEY || 'Y3m1ic5-mSSYUkTKX';
         
         console.log('📧 EmailJS Config:', {
           SERVICE_ID,
           TEMPLATE_ID,
           PUBLIC_KEY: PUBLIC_KEY ? `${PUBLIC_KEY.substring(0, 5)}...` : 'missing',
           recipientCount: 1,
+          recipientEmail: recipient,
           envVarsAvailable: {
             SERVICE_ID: !!import.meta.env.VITE_EMAILJS_SERVICE_ID,
             TEMPLATE_ID: !!import.meta.env.VITE_EMAILJS_TEMPLATE_ID,
@@ -175,12 +180,35 @@ export default function OrderConfirmed() {
           }
         });
         
-        // Prepare detailed order items text
+        // Prepare detailed order items as HTML table for email
+        const brandColor = '#3e2723';
+        const border = '#e0d6cd';
+        const orderItemsHtml = orders.map(item => `
+          <tr style="vertical-align: top; border-bottom: 1px solid ${border}">
+            <td style="padding: 14px 8px 14px 0; width: 72px;">
+              <img style="width: 64px; height: 64px; object-fit: cover; border-radius: 6px; border: 1px solid ${border}" src="${item.image_url}" alt="${item.name}">
+            </td>
+            <td style="padding: 14px 8px;">
+              <div style="font-weight: 600; color: ${brandColor}">${item.name}</div>
+              <div style="font-size: 12px; color: #7a6a5f; margin-top: 4px;">QTY: ${item.units}</div>
+            </td>
+            <td style="padding: 14px 0; white-space: nowrap; text-align: right; font-weight: 700; color: ${brandColor}">₹${item.price.toFixed(2)}</td>
+          </tr>
+        `).join('');
+        
+        // Also prepare plain text version
         const orderItemsText = orders.map((item, idx) => 
           `${idx + 1}. ${item.name} - Qty: ${item.units} - Price: ₹${item.price.toFixed(2)}`
         ).join('\n');
         
+        console.log('📧 Order items prepared:', {
+          itemCount: orders.length,
+          htmlLength: orderItemsHtml.length,
+          textLength: orderItemsText.length
+        });
+        
         console.log('📧 Attempting to send email via EmailJS...');
+        console.log('📧 All import.meta.env vars:', import.meta.env);
         
         try {
           const result = await emailjs.send(
@@ -196,27 +224,34 @@ export default function OrderConfirmed() {
               customer_address: address,
               payment_status: paymentStatus,
               order_items: orderItemsText,
-              orders: orders,
-              cost: cost,
-              shipping_amount: cost.shipping,
-              total_amount: cost.total,
+              order_items_html: orderItemsHtml,
+              shipping_amount: `₹${cost.shipping.toFixed(2)}`,
+              total_amount: `₹${cost.total.toFixed(2)}`,
               website_url: websiteUrl,
-              html_content: html,
-            },
-            PUBLIC_KEY
+            }
           );
           
           console.log('📧 EmailJS raw response:', result);
           
-          if (result?.status === 200) {
+          if (result?.status === 200 || result?.text === 'OK') {
             setEmailSent(true);
             console.log('✅ Order confirmation email sent successfully to:', recipient);
             console.log('📧 EmailJS Response:', result);
+            // Show success message to user
+            alert(`✅ Order confirmation email sent to ${recipient}`);
           } else {
-            console.warn('⚠️ EmailJS returned non-200 status:', result?.status, result);
+            console.warn('⚠️ EmailJS returned unexpected response:', result?.status, result);
+            alert(`⚠️ Email may not have been sent. Status: ${result?.status}`);
           }
         } catch (emailError) {
           console.error('❌ EmailJS send error:', emailError);
+          console.error('EmailJS error details:', {
+            message: emailError?.message,
+            text: emailError?.text,
+            status: emailError?.status,
+            name: emailError?.name
+          });
+          alert(`❌ Failed to send email: ${emailError?.text || emailError?.message || 'Unknown error'}`);
           throw emailError; // Re-throw to be caught by outer catch
         }
       } catch (err) {
