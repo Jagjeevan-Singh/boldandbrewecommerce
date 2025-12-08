@@ -26,6 +26,7 @@ function Cart({
   onUpdateQuantity,
   onMoveToWishlist,
   onApplyCoupon,
+  onRemoveCoupon,
   coupon,
   setCoupon,
   couponError,
@@ -89,6 +90,10 @@ function Cart({
     setSelectedCoupon('');
     setCoupon('');
     setShowCouponDropdown(false);
+    // Call parent handler to clear discount
+    if (onRemoveCoupon) {
+      onRemoveCoupon();
+    }
   };
 
   const getCouponDescription = (coupon) => {

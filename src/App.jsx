@@ -95,9 +95,15 @@ function App() {
   const fetchAndApplyCoupon = async (code, currentSubtotal) => {
     setCouponError("");
     setDiscount(0);
-    if (!code) return;
+    if (!code) {
+      return;
+    }
 
     const trimmed = code.trim().toUpperCase();
+    if (!trimmed) {
+      setDiscount(0);
+      return;
+    }
     const q = query(
       collection(db, "coupons"),
       where("code", "==", trimmed),
@@ -154,14 +160,11 @@ function App() {
     await fetchAndApplyCoupon(coupon, subtotal);
   };
 
-  useEffect(() => {
-    if (coupon) {
-      fetchAndApplyCoupon(coupon, subtotal);
-    } else {
-      setDiscount(0);
-      setCouponError("");
-    }
-  }, [subtotal]);
+  const handleRemoveCoupon = () => {
+    setCoupon('');
+    setDiscount(0);
+    setCouponError('');
+  };
 
   // ✅ Sync products and live stock updates
   useEffect(() => {
@@ -320,6 +323,7 @@ function App() {
                     onUpdateQuantity={updateCartQuantity}
                     onMoveToWishlist={moveToWishlist}
                     onApplyCoupon={handleApplyCoupon}
+                    onRemoveCoupon={handleRemoveCoupon}
                     coupon={coupon}
                     setCoupon={setCoupon}
                     couponError={couponError}
