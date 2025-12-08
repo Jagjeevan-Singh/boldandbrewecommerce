@@ -13,6 +13,40 @@
     border: none !important;
     outline: none !important;
   }
+
+  .search-overlay {
+    padding: 0 12px !important;
+    box-sizing: border-box !important;
+  }
+
+  .search-overlay-form {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  .search-overlay-input {
+    font-size: 1rem !important;
+    padding: 0.8rem 3.5rem 0.8rem 0.8rem !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .search-overlay-input::placeholder {
+    font-size: 0.9rem !important;
+  }
+
+  .search-overlay-icon-btn {
+    right: 42px !important;
+    font-size: 1.2rem !important;
+  }
+
+  .search-overlay-close {
+    right: 8px !important;
+    font-size: 1.5rem !important;
+  }
 }
 
 @media (max-width: 768px) {
@@ -23,6 +57,30 @@
     padding: 10px 14px !important;
     margin: 0 !important;
     box-sizing: border-box !important;
+  }
+
+  .search-overlay {
+    padding: 0 16px !important;
+    box-sizing: border-box !important;
+  }
+
+  .search-overlay-form {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  .search-overlay-input {
+    font-size: 1.1rem !important;
+    padding: 1rem 4rem 1rem 1rem !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  .search-overlay-input::placeholder {
+    font-size: 1rem !important;
   }
 }
 /* Always force translucent header on all pages */
@@ -45,6 +103,8 @@
   align-items: center;
   justify-content: center;
   animation: fadeIn 0.2s;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .search-overlay-form {
@@ -55,17 +115,20 @@
   align-items: center;
   position: relative;
   background: transparent;
+  padding: 0 16px;
+  box-sizing: border-box;
 }
 
 .search-overlay-input {
   flex: 1;
   font-size: 1.4rem;
-  padding: 1.2rem 2.5rem 1.2rem 1.2rem;
+  padding: 1.2rem 5rem 1.2rem 1.2rem;
   border: 2px solid #fff;
   border-radius: 0.2em;
   background: transparent;
   color: #fff;
   outline: none;
+  box-sizing: border-box;
 }
 
 .search-overlay-input::placeholder {
@@ -75,7 +138,7 @@
 
 .search-overlay-icon-btn {
   position: absolute;
-  right: 48px;
+  right: calc(16px + 48px);
   background: none;
   border: none;
   color: #fff;
@@ -86,7 +149,7 @@
 
 .search-overlay-close {
   position: absolute;
-  right: 8px;
+  right: 24px;
   background: none;
   border: none;
   color: #fff;

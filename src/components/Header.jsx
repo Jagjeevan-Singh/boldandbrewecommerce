@@ -1,8 +1,8 @@
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { FaShoppingCart, FaUser, FaSearch, FaHeart } from 'react-icons/fa';
 import { CircularText } from '../blocks/TextAnimations/CircularText/CircularText.jsx';
 import './Header.css';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import logo from '../assets/logo.png';
 import SideBar from './SideBar';
 
@@ -10,6 +10,23 @@ function Header({ cartCount = 0, wishlistCount = 0 }) {
   const [showSearch, setShowSearch] = useState(false);
   const [localSearch, setLocalSearch] = useState('');
   const navigate = useNavigate();
+  const location = useLocation();
+  const prevPathRef = useRef(null);
+
+  // Clear search when navigating away from products page
+  useEffect(() => {
+    const currentPath = location.pathname;
+    const previousPath = prevPathRef.current;
+
+    // If we were on /products and now we're not, clear the search
+    if (previousPath === '/products' && currentPath !== '/products') {
+      if (typeof window.setAppSearchTerm === 'function') {
+        window.setAppSearchTerm('');
+      }
+    }
+
+    prevPathRef.current = currentPath;
+  }, [location.pathname]);
 
   const handleSearchClick = () => {
     setShowSearch(true);
