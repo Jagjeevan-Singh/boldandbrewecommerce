@@ -125,6 +125,35 @@
   }
   .recipe-image-container {
     aspect-ratio: 1/1;
+    width: 100%;
+    height: auto;
+  }
+  .recipe-image,
+  .recipe-hover-image {
+    object-fit: cover;
+    width: 100%;
+    height: 100%;
+  }
+  
+  /* Enable hover image on tap for mobile */
+  .recipe-card:active .recipe-hover-image {
+    opacity: 1;
+  }
+  
+  .recipe-card:active .recipe-image {
+    opacity: 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .recipe-card {
+    min-width: 160px;
+    max-width: 70vw;
+    width: 70vw;
+  }
+  .recipe-image-container {
+    aspect-ratio: 1/1;
+    width: 100%;
     height: auto;
   }
 }
@@ -167,6 +196,15 @@
   
   .recipe-card {
     scroll-snap-align: start;
+    min-width: 140px;
+    max-width: 65vw;
+    width: 65vw;
+  }
+  
+  .recipe-image-container {
+    aspect-ratio: 1/1;
+    width: 100%;
+    height: auto;
   }
 
   .recipe-section h2 {

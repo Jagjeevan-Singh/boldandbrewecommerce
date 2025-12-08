@@ -43,21 +43,22 @@ function ProductList({ products, onAdd, onWishlist }) {
   return (
     <section className="products-section" data-aos="fade-up">
   <h2 className="india-coffee-title" style={{
-    fontSize: isMobile ? '2.2rem' : '3.2rem',
+    fontSize: isMobile ? '1.75rem' : '3.2rem',
     lineHeight: '1.1',
     fontWeight: '400',
     fontFamily: "'Pinyon Script', cursive",
     color: '#ffffff',
     margin: isMobile ? '0 -20px 20px -20px' : '0 -40px 30px -40px',
-    letterSpacing: '2.5px',
+    letterSpacing: isMobile ? '1.5px' : '2.5px',
     textAlign: 'center',
     textShadow: '0 2px 4px rgba(0, 0, 0, 0.3)',
     background: 'rgba(70, 46, 34, 0.92)',
-    padding: isMobile ? '20px 30px 22px 30px' : '30px 40px 32px 40px',
+    padding: isMobile ? '18px 25px 20px 25px' : '30px 40px 32px 40px',
     borderRadius: '0',
     boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
     boxSizing: 'border-box',
-    border: 'none'
+    border: 'none',
+    whiteSpace: isMobile ? 'nowrap' : 'normal'
   }}>India's #1 Instant Coffee</h2>
       <div className="product-grid" style={{
         display: 'grid',
