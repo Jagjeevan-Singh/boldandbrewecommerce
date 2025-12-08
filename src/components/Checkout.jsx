@@ -25,6 +25,19 @@ const Checkout = ({ cartItems = [], total = 0 }) => {
   const [addressLabel, setAddressLabel] = useState('Home');
   const [customLabel, setCustomLabel] = useState('');
 
+  // Load draft from localStorage on first render (helps when user returns from Razorpay back button)
+  useEffect(() => {
+    try {
+      const draft = localStorage.getItem('checkoutDraft');
+      if (draft) {
+        const parsed = JSON.parse(draft);
+        setForm((f) => ({ ...f, ...parsed }));
+      }
+    } catch (e) {
+      console.warn('Could not load checkout draft', e);
+    }
+  }, []);
+
   const navigate = useNavigate();
 
   const applyAddressToForm = (addr) => {
@@ -83,6 +96,15 @@ const Checkout = ({ cartItems = [], total = 0 }) => {
       [name]: type === 'checkbox' ? checked : value
     }));
   };
+
+  // Persist draft locally on every change so user keeps data if they navigate back from Razorpay
+  useEffect(() => {
+    try {
+      localStorage.setItem('checkoutDraft', JSON.stringify(form));
+    } catch (e) {
+      console.warn('Could not save checkout draft', e);
+    }
+  }, [form]);
 
   const handleSelectSaved = (e) => {
     const id = e.target.value;
