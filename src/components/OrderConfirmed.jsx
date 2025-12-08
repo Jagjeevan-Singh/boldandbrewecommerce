@@ -245,15 +245,12 @@ export default function OrderConfirmed() {
             setEmailSent(true);
             console.log('✅ Order confirmation email sent successfully to:', recipient);
             console.log('📧 Full EmailJS Response:', result);
-            // Show success message to user
-            alert(`✅ Order confirmation email sent to ${recipient}`);
           } else {
             console.warn('⚠️ EmailJS returned unexpected response:', {
               status: result?.status,
               text: result?.text,
               fullResponse: result
             });
-            alert(`⚠️ Email may not have been sent. Status: ${result?.status || result?.text}`);
           }
         } catch (emailError) {
           console.error('❌ EmailJS send error - Full Error Object:', emailError);
@@ -270,8 +267,7 @@ export default function OrderConfirmed() {
             TEMPLATE_ID,
             recipient
           });
-          alert(`❌ Failed to send email: ${emailError?.text || emailError?.message || JSON.stringify(emailError)}`);
-          // Don't re-throw - continue execution
+          // Don't show alert - just log the error
         }
       } catch (err) {
         console.error('❌ Outer catch - Failed to send order confirmation email:', err);
