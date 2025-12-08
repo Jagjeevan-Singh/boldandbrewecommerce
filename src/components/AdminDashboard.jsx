@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { collection, getDocs, doc, updateDoc } from "firebase/firestore";
-import { FaEdit } from 'react-icons/fa';
+import { FaEdit, FaTag } from 'react-icons/fa';
 import { db } from "../firebase";
 import "./AdminDashboard.css";
 
@@ -21,11 +21,13 @@ function ProductImage({ src, alt }) {
   return <img src={src} alt={alt} className="admin-dashboard-img" onError={e=>e.target.style.display='none'} />;
 }
 
-export default function AdminDashboard({ onCreateProduct, onEditProduct }) {
+export default function AdminDashboard({ onCreateProduct, onEditProduct, onManageCoupons }) {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [savingId, setSavingId] = useState(null);
   const [successMsg, setSuccessMsg] = useState("");
+  const [coupons, setCoupons] = useState([]);
+  const [loadingCoupons, setLoadingCoupons] = useState(true);
 
   useEffect(() => {
     const loadProducts = async () => {
@@ -42,7 +44,28 @@ export default function AdminDashboard({ onCreateProduct, onEditProduct }) {
         setLoading(false);
       }
     };
+    
+    const loadCoupons = async () => {
+      try {
+        setLoadingCoupons(true);
+        const querySnap = await getDocs(collection(db, "coupons"));
+        const items = querySnap.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data(),
+          validFrom: doc.data().validFrom?.toDate?.() || null,
+          validUntil: doc.data().validUntil?.toDate?.() || null
+        }));
+        setCoupons(items.sort((a, b) => b.createdAt?.seconds - a.createdAt?.seconds || 0));
+      } catch (err) {
+        console.error("Error loading coupons:", err);
+      } finally {
+        setLoadingCoupons(false);
+      }
+    };
+    
     loadProducts();
+    loadCoupons();
+    
     // Listen for product deletion events
     const onDeleted = (e) => {
       const deletedId = e.detail?.id;
@@ -88,11 +111,83 @@ export default function AdminDashboard({ onCreateProduct, onEditProduct }) {
 
   if (loading) return <p style={{color:'#7c5a3a', fontWeight:600, fontSize:'1.2em'}}>Loading dashboard...</p>;
 
+  const activeCoupons = coupons.filter(c => c.isActive).length;
+  const totalCoupons = coupons.length;
+
   return (
     <div>
       <div style={{ padding: "32px 0", maxWidth: 1200, margin: "0 auto", fontFamily: 'Poppins, Montserrat, Arial, sans-serif' }}>
         <h2 style={{ color: '#4a3c35', fontWeight: 700, fontSize: '2.2rem', marginBottom: 32, letterSpacing: 1 }}>☕ Admin Dashboard</h2>
         {successMsg && <div style={{background:'#e6ffe6',color:'#2e7d32',padding:'10px 18px',borderRadius:8,marginBottom:18,fontWeight:600}}>{successMsg}</div>}
+        
+        {/* Coupons Summary Section */}
+        <div style={{marginBottom:24, background:'#fff7f0', padding:'20px 24px', borderRadius:12, border:'2px solid #e0c9b6'}}>
+          <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', flexWrap:'wrap', gap:'1rem'}}>
+            <div>
+              <h3 style={{color:'#4a3c35', fontWeight:600, fontSize:'1.4rem', marginBottom:8, display:'flex', alignItems:'center', gap:8}}>
+                <FaTag style={{color:'#b9805a'}} /> Coupons Management
+              </h3>
+              <p style={{color:'#666', fontSize:'0.95rem', margin:0}}>
+                {loadingCoupons ? 'Loading coupons...' : `${activeCoupons} active out of ${totalCoupons} total coupons`}
+              </p>
+            </div>
+            <button 
+              onClick={onManageCoupons} 
+              style={{
+                background:'#4caf50',
+                color:'#fff',
+                border:'none',
+                borderRadius:8,
+                padding:'12px 24px',
+                fontWeight:600,
+                fontSize:'1em',
+                cursor:'pointer',
+                boxShadow:'0 2px 8px rgba(76, 175, 80, 0.3)',
+                transition:'all 0.2s ease'
+              }}
+              onMouseOver={(e) => e.target.style.background = '#45a049'}
+              onMouseOut={(e) => e.target.style.background = '#4caf50'}
+            >
+              Manage Coupons
+            </button>
+          </div>
+          
+          {!loadingCoupons && coupons.length > 0 && (
+            <div style={{marginTop:16, display:'flex', gap:'12px', flexWrap:'wrap'}}>
+              {coupons.slice(0, 5).map(coupon => (
+                <div 
+                  key={coupon.id} 
+                  style={{
+                    background: coupon.isActive ? '#e8f5e9' : '#f5f5f5',
+                    border: `2px solid ${coupon.isActive ? '#4caf50' : '#ccc'}`,
+                    borderRadius:8,
+                    padding:'8px 12px',
+                    fontSize:'0.85rem'
+                  }}
+                >
+                  <strong style={{color: coupon.isActive ? '#2e7d32' : '#666'}}>{coupon.code}</strong>
+                  {' - '}
+                  <span style={{color:'#666'}}>
+                    {coupon.discountType === 'percentage' ? `${coupon.discountValue}%` : `₹${coupon.discountValue}`} off
+                  </span>
+                </div>
+              ))}
+              {coupons.length > 5 && (
+                <div style={{
+                  background:'#f0f0f0',
+                  borderRadius:8,
+                  padding:'8px 12px',
+                  fontSize:'0.85rem',
+                  color:'#666',
+                  fontWeight:600
+                }}>
+                  +{coupons.length - 5} more
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+        
         <div style={{marginBottom:18}}>
           <button onClick={onCreateProduct} style={{background:'#b9805a',color:'#fff',border:'none',borderRadius:6,padding:'12px 24px',fontWeight:600,letterSpacing:1,cursor:'pointer',fontSize:'1em',boxShadow:'0 2px 8px #bcae9e22'}}>
             + Create New Product

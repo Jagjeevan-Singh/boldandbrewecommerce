@@ -12,8 +12,11 @@ function ProductImage({ src, alt, ...props }) {
   return <img src={src} alt={alt} {...props} />;
 }
 
-import { FaTrashAlt, FaHeart } from 'react-icons/fa';
+import { FaTrashAlt, FaHeart, FaTimes } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { collection, getDocs, query, where } from 'firebase/firestore';
+import { db } from '../firebase';
 import './Cart.css';
 import ProductRating from './ProductRating';
 
@@ -32,6 +35,79 @@ function Cart({
 }) {
   const navigate = useNavigate();
   const EXCLUDE_NAMES = ['PURE INSTANT COFFEE', 'HAZELNUT', 'VANILLA COFFEE'];
+  
+  const [availableCoupons, setAvailableCoupons] = useState([]);
+  const [loadingCoupons, setLoadingCoupons] = useState(true);
+  const [selectedCoupon, setSelectedCoupon] = useState('');
+  const [showCouponDropdown, setShowCouponDropdown] = useState(false);
+
+  // Fetch available coupons
+  useEffect(() => {
+    const fetchCoupons = async () => {
+      try {
+        setLoadingCoupons(true);
+        const couponsRef = collection(db, 'coupons');
+        const q = query(couponsRef, where('isActive', '==', true));
+        const querySnapshot = await getDocs(q);
+        
+        const now = new Date();
+        const coupons = querySnapshot.docs
+          .map(doc => ({ id: doc.id, ...doc.data() }))
+          .filter(coupon => {
+            // Filter by validity dates
+            if (coupon.validFrom && coupon.validFrom.toDate() > now) return false;
+            if (coupon.validUntil && coupon.validUntil.toDate() < now) return false;
+            // Filter by usage limit
+            if (coupon.usageLimit > 0 && (coupon.usedCount || 0) >= coupon.usageLimit) return false;
+            return true;
+          });
+        
+        setAvailableCoupons(coupons);
+      } catch (error) {
+        console.error('Error fetching coupons:', error);
+      } finally {
+        setLoadingCoupons(false);
+      }
+    };
+    
+    fetchCoupons();
+  }, []);
+
+  const handleCouponSelect = (couponCode) => {
+    setSelectedCoupon(couponCode);
+    setCoupon(couponCode);
+    setShowCouponDropdown(false);
+  };
+
+  const handleApplyCoupon = () => {
+    if (selectedCoupon || coupon) {
+      onApplyCoupon();
+    }
+  };
+
+  const handleRemoveCoupon = () => {
+    setSelectedCoupon('');
+    setCoupon('');
+    setShowCouponDropdown(false);
+  };
+
+  const getCouponDescription = (coupon) => {
+    if (!coupon) return '';
+    
+    const { discountType, discountValue, minOrderValue, description } = coupon;
+    
+    if (description) return description;
+    
+    let desc = discountType === 'percentage' 
+      ? `${discountValue}% off` 
+      : `₹${discountValue} off`;
+    
+    if (minOrderValue > 0) {
+      desc += ` on purchase of ₹${minOrderValue}`;
+    }
+    
+    return desc;
+  };
 
   // Normalize cart items for image compatibility
   const normalizedCartItems = cartItems
@@ -200,26 +276,82 @@ function Cart({
             <span>Free</span>
           </div>
 
-          <div className="cart-summary-row-pro coupon-row-pro">
-            <label htmlFor="cart-coupon" className="visually-hidden">
-              Coupon code
-            </label>
-            <input
-              id="cart-coupon"
-              name="coupon"
-              type="text"
-              placeholder="Coupon code"
-              value={coupon}
-              onChange={(e) => setCoupon(e.target.value)}
-              className="cart-coupon-input-pro"
-              autoComplete="off"
-            />
-            <button className="apply-coupon-btn-pro" onClick={onApplyCoupon}>
-              Apply
-            </button>
-          </div>
+          {/* Coupon Section with Dropdown */}
+          <div className="cart-coupon-section-pro">
+            <h4 style={{ fontSize: '0.95rem', fontWeight: 600, color: '#4a3c35', marginBottom: '0.5rem' }}>
+              Apply Coupon
+            </h4>
+            
+            {!selectedCoupon && !coupon ? (
+              <div className="coupon-dropdown-container-pro">
+                <button 
+                  className="coupon-select-btn-pro"
+                  onClick={() => setShowCouponDropdown(!showCouponDropdown)}
+                  disabled={loadingCoupons}
+                >
+                  {loadingCoupons ? 'Loading coupons...' : 'Select a coupon'}
+                </button>
+                
+                {showCouponDropdown && availableCoupons.length > 0 && (
+                  <div className="coupon-dropdown-list-pro">
+                    {availableCoupons.map((cpn) => {
+                      const isEligible = subtotal >= (cpn.minOrderValue || 0);
+                      return (
+                        <div 
+                          key={cpn.id}
+                          className={`coupon-item-pro ${!isEligible ? 'disabled' : ''}`}
+                          onClick={() => isEligible && handleCouponSelect(cpn.code)}
+                        >
+                          <div className="coupon-item-header-pro">
+                            <span className="coupon-code-pro">{cpn.code}</span>
+                            {!isEligible && (
+                              <span className="coupon-ineligible-pro">
+                                Min ₹{cpn.minOrderValue}
+                              </span>
+                            )}
+                          </div>
+                          <div className="coupon-description-pro">
+                            {getCouponDescription(cpn)}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+                
+                {showCouponDropdown && availableCoupons.length === 0 && !loadingCoupons && (
+                  <div className="coupon-dropdown-list-pro">
+                    <div className="coupon-item-pro disabled">
+                      No coupons available
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="applied-coupon-container-pro">
+                <div className="applied-coupon-info-pro">
+                  <span className="applied-coupon-code-pro">{selectedCoupon || coupon}</span>
+                  <button 
+                    className="remove-coupon-btn-pro"
+                    onClick={handleRemoveCoupon}
+                    title="Remove coupon"
+                  >
+                    <FaTimes />
+                  </button>
+                </div>
+                {discount === 0 && (
+                  <button 
+                    className="apply-coupon-action-btn-pro"
+                    onClick={handleApplyCoupon}
+                  >
+                    Apply Coupon
+                  </button>
+                )}
+              </div>
+            )}
 
           {couponError && <div className="cart-coupon-error-pro">{couponError}</div>}
+          </div>
 
           <div className="cart-summary-total-pro">
             <span>Total</span>

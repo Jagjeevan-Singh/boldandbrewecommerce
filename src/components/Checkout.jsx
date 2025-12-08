@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { db, auth } from '../firebase';
 import { onAuthStateChanged } from 'firebase/auth';
-import { collection, addDoc, serverTimestamp, doc, getDoc, setDoc, getDocs } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, doc, getDoc, setDoc, getDocs, query, where, Timestamp } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
 import './Checkout.css';
 
@@ -176,7 +176,10 @@ const Checkout = ({ cartItems = [], total = 0 }) => {
       const res = await fetch(`${FUNCTIONS_BASE}/createRazorpayOrder`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ amount: Math.round(total) /* rupees */ , currency: 'INR' })
+        body: JSON.stringify({ 
+          amount: Math.round(total) /* rupees */, 
+          currency: 'INR'
+        })
       });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
@@ -212,7 +215,10 @@ const Checkout = ({ cartItems = [], total = 0 }) => {
           replace: true,
           state: { 
             payment: { ...response, amount: Math.round(total * 100) }, 
-            checkout: { ...form, total },
+            checkout: { 
+              ...form, 
+              total: total
+            },
             serverOrderId: order.id,
             needsVerification: true // flag for background verification
           } 
@@ -227,7 +233,7 @@ const Checkout = ({ cartItems = [], total = 0 }) => {
             paymentId: response.razorpay_payment_id,
             signature: response.razorpay_signature,
             cartItems,
-            total,
+            total: total,
             shippingForm: form,
             userId: user.uid,
             saveForFuture: form.saveForFuture
@@ -410,6 +416,7 @@ const Checkout = ({ cartItems = [], total = 0 }) => {
             </div>
           </div>
         )}
+
         <button type="submit">
           Save & Continue <span style={{ fontSize: '1.3em', marginLeft: 6 }}>&#8594;</span>
         </button>

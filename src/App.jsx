@@ -101,7 +101,7 @@ function App() {
     const q = query(
       collection(db, "coupons"),
       where("code", "==", trimmed),
-      where("active", "==", true)
+      where("isActive", "==", true)
     );
     const snap = await getDocs(q);
 
@@ -111,16 +111,43 @@ function App() {
     }
 
     const couponDoc = snap.docs[0].data();
-    if (couponDoc.expiry && couponDoc.expiry.toDate() < new Date()) {
+    
+    // Check validity dates
+    const now = new Date();
+    if (couponDoc.validFrom && couponDoc.validFrom.toDate() > now) {
+      setCouponError("Coupon is not yet valid.");
+      return;
+    }
+    
+    if (couponDoc.validUntil && couponDoc.validUntil.toDate() < now) {
       setCouponError("Coupon expired.");
       return;
     }
-
-    if (couponDoc.discountType === "percent") {
-      setDiscount((currentSubtotal * couponDoc.discountValue) / 100);
-    } else {
-      setDiscount(couponDoc.discountValue);
+    
+    // Check minimum order value
+    if (couponDoc.minOrderValue && currentSubtotal < couponDoc.minOrderValue) {
+      setCouponError(`Minimum order value of ₹${couponDoc.minOrderValue} required.`);
+      return;
     }
+    
+    // Check usage limit
+    if (couponDoc.usageLimit > 0 && (couponDoc.usedCount || 0) >= couponDoc.usageLimit) {
+      setCouponError("Coupon usage limit reached.");
+      return;
+    }
+
+    // Calculate discount
+    let calculatedDiscount = 0;
+    if (couponDoc.discountType === "percentage") {
+      calculatedDiscount = (currentSubtotal * couponDoc.discountValue) / 100;
+      if (couponDoc.maxDiscount > 0) {
+        calculatedDiscount = Math.min(calculatedDiscount, couponDoc.maxDiscount);
+      }
+    } else {
+      calculatedDiscount = couponDoc.discountValue;
+    }
+    
+    setDiscount(Math.min(calculatedDiscount, currentSubtotal));
   };
 
   const handleApplyCoupon = async () => {

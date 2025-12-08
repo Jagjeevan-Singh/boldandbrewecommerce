@@ -57,5 +57,12 @@ service cloud.firestore {
     match /wishlists/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
+    
+    // Coupons - public read for active coupons, admin write
+    match /coupons/{couponId} {
+      allow read: if true; // Anyone can read coupons to check validity
+      allow create, update, delete: if request.auth != null && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'owner';
+    }
   }
 }

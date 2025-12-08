@@ -92,3 +92,33 @@ th, td {
     height: 22px;
   }
 }
+
+/* Responsive styles for coupons section */
+@media (max-width: 768px) {
+  .admin-dashboard-coupons-summary {
+    padding: 16px 18px !important;
+  }
+  
+  .admin-dashboard-coupons-summary h3 {
+    font-size: 1.2rem !important;
+  }
+  
+  .admin-dashboard-coupons-summary p {
+    font-size: 0.9rem !important;
+  }
+  
+  .admin-dashboard-coupons-summary button {
+    width: 100%;
+    margin-top: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .admin-dashboard-coupons-summary {
+    padding: 12px 14px !important;
+  }
+  
+  .admin-dashboard-coupons-summary h3 {
+    font-size: 1.1rem !important;
+  }
+}

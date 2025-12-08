@@ -4,12 +4,14 @@ import AdminOrders from './AdminOrders';
 import AdminDashboard from './AdminDashboard';
 import EditProduct from './EditProduct';
 import CreateProduct from './CreateProduct';
+import CouponManagement from './CouponManagement';
 import './AdminMain.css';
 import logo from '../assets/logo.png';
 
 const NAV_OPTIONS = [
   { key: 'dashboard', label: 'Home' },
   { key: 'orders', label: 'Orders' },
+  { key: 'coupons', label: 'Coupons' },
 ];
 
 export default function AdminMain() {
@@ -37,8 +39,9 @@ export default function AdminMain() {
         </div>
       </nav>
       <div className="admin-main-content">
-        {activeTab === 'dashboard' && <AdminDashboard onCreateProduct={() => setShowCreateProduct(true)} onEditProduct={(p) => setEditingProduct(p)} />}
+        {activeTab === 'dashboard' && <AdminDashboard onCreateProduct={() => setShowCreateProduct(true)} onEditProduct={(p) => setEditingProduct(p)} onManageCoupons={() => setActiveTab('coupons')} />}
         {activeTab === 'orders' && <AdminOrders />}
+        {activeTab === 'coupons' && <CouponManagement />}
         {showCreateProduct && <CreateProduct onClose={() => setShowCreateProduct(false)} />}
         {editingProduct && <EditProduct 
           product={editingProduct} 
