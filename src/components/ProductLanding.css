@@ -145,6 +145,42 @@
   .info-header {
     font-size: 1.08rem;
   }
+  .reviews {
+    gap: 1rem;
+  }
+  .review-card {
+    padding: 0.9rem 1rem;
+  }
+  .review-header {
+    gap: 10px;
+  }
+  .reviewer {
+    font-size: 1rem;
+  }
+  .review-text {
+    font-size: 0.98rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .reviews {
+    gap: 0.8rem;
+  }
+  .review-card {
+    padding: 0.8rem 0.9rem;
+  }
+  .review-header {
+    gap: 8px;
+  }
+  .reviewer {
+    font-size: 0.95rem;
+  }
+  .review-stars {
+    font-size: 0.95rem;
+  }
+  .review-text {
+    font-size: 0.92rem;
+  }
 }
 /* Desktop layout */
 /* Desktop layout */

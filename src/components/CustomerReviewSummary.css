@@ -1,4 +1,4 @@
-@media (max-width: 600px) {
+@media (max-width: 768px) {
   .customer-review-summary,
   .review-summary-left,
   .review-summary-right {
@@ -9,33 +9,33 @@
     max-width: 100% !important;
     min-width: 0 !important;
     margin: 0 !important;
-    padding: 0.08rem 0.02rem 0.08rem 0.02rem !important;
+    padding: 1.2rem 1rem 1rem 1rem !important;
     box-sizing: border-box !important;
-    gap: 4px !important;
+    gap: 16px !important;
   }
   .review-summary-score {
-    font-size: 0.85rem !important;
-    gap: 0.05em !important;
+    font-size: 2.2rem !important;
+    gap: 0.15em !important;
   }
   .review-summary-avg {
-    font-size: 0.85rem !important;
+    font-size: 2.2rem !important;
   }
   .review-summary-outof {
-    font-size: 0.7rem !important;
+    font-size: 1.3rem !important;
   }
   .review-summary-stars {
-    font-size: 0.7rem !important;
-    gap: 0.5px !important;
+    font-size: 1.5rem !important;
+    gap: 2px !important;
   }
   .review-summary-count {
-    font-size: 0.6rem !important;
-    margin-bottom: 0.2em !important;
+    font-size: 0.95rem !important;
+    margin-bottom: 0.8em !important;
   }
   .review-summary-write-btn {
-    font-size: 0.6rem !important;
-    padding: 0.12em 0.3em !important;
-    border-radius: 6px !important;
-    margin-top: 0.1em !important;
+    font-size: 1rem !important;
+    padding: 0.5em 1.8em !important;
+    border-radius: 12px !important;
+    margin-top: 0.3em !important;
   }
 }
 .customer-review-summary {
