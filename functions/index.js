@@ -97,7 +97,48 @@ exports.verifyRazorpayPayment = functions.https.onRequest((req, res) => {
             return res.status(400).json({ status: 'failure', message: 'Payment verification failed (Signature Mismatch).' });
         }
 
-        // Step 2: Verification SUCCESS! Save Order to Firestore (using Admin SDK)
+        // Step 2: Fetch Payment Details from Razorpay to get payment method
+        let paymentMethod = 'Online Payment';
+        try {
+          const auth = Buffer.from(`${functions.config().razorpay.key_id}:${key_secret}`).toString('base64');
+          const paymentResponse = await axios.get(`https://api.razorpay.com/v1/payments/${paymentId}`, {
+            headers: { Authorization: `Basic ${auth}` }
+          });
+          
+          if (paymentResponse.data) {
+            const method = paymentResponse.data.method;
+            const vpa = paymentResponse.data.vpa;
+            const email = paymentResponse.data.email;
+            
+            // Map Razorpay payment methods to user-friendly names
+            if (method === 'upi') {
+              paymentMethod = `UPI (${vpa || 'UPI Payment'})`;
+            } else if (method === 'netbanking') {
+              paymentMethod = 'NetBanking';
+            } else if (method === 'card') {
+              const cardType = paymentResponse.data.card_type || 'Card';
+              paymentMethod = `${cardType.charAt(0).toUpperCase() + cardType.slice(1)} Card`;
+            } else if (method === 'wallet') {
+              const walletName = paymentResponse.data.wallet || 'Wallet';
+              paymentMethod = `${walletName} Wallet`;
+            } else if (method === 'emandate') {
+              paymentMethod = 'E-Mandate';
+            } else if (method === 'paylater') {
+              paymentMethod = 'Buy Now Pay Later';
+            } else if (method === 'bank_transfer') {
+              paymentMethod = 'Bank Transfer';
+            } else {
+              // Fallback to the method name as-is
+              paymentMethod = method.charAt(0).toUpperCase() + method.slice(1).replace(/_/g, ' ');
+            }
+            
+            console.log('💳 Payment Method:', paymentMethod);
+          }
+        } catch (fetchErr) {
+          console.warn('⚠️ Could not fetch payment method details, using default:', fetchErr.message);
+        }
+
+        // Step 3: Verification SUCCESS! Save Order to Firestore (using Admin SDK)
     await db.collection('orders').add({
             userId: userId,
             items: cartItems,
@@ -109,7 +150,7 @@ exports.verifyRazorpayPayment = functions.https.onRequest((req, res) => {
             razorpayPaymentId: paymentId,
             razorpayOrderId: orderId,
             razorpaySignature: signature,
-            paymentMode: paymentMode || 'Razorpay'
+            paymentMode: paymentMethod // Use the fetched payment method
         });
         
         // Save address for future
