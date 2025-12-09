@@ -41,7 +41,10 @@
 /* Show mobile product details only on mobile */
 @media (max-width: 900px) {
   .od-container {
-    padding: 16px 12px;
+    padding: 12px;
+    margin: 0;
+    width: 100%;
+    max-width: 100%;
     overflow-x: hidden;
   }
 
@@ -52,6 +55,11 @@
     max-width: 100%;
     width: 100%;
     box-sizing: border-box;
+  }
+
+  .od-card {
+    margin: 0;
+    border-radius: 16px;
   }
 
   .od-items-table th,
