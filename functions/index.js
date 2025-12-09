@@ -3,6 +3,7 @@ const Razorpay = require('razorpay');
 const cors = require('cors')({ origin: true });
 const crypto = require('crypto');
 const axios = require('axios');
+const nodemailer = require('nodemailer');
 // Initialize the Firebase Admin SDK for server-side Firestore access
 const admin = require('firebase-admin');
 
@@ -671,6 +672,448 @@ exports.assignAWB = functions.region('asia-south1').https.onCall(async (data, co
     throw new functions.https.HttpsError('internal', 'Failed to assign AWB', error.response?.data || { message: error.message });
   }
 });
+
+// ================================================================================
+// FUNCTION: SEND ORDER CONFIRMATION EMAIL
+// ================================================================================
+/**
+ * Cloud Function: Send Order Confirmation Email
+ * - Triggered by Firestore onWrite on 'orders' collection
+ * - Automatically sends email when new order is created
+ * - Fetches order details and product information from Firestore
+ * - Sends beautifully formatted HTML email with product images
+ */
+exports.sendOrderConfirmationEmail = functions.firestore
+  .document('orders/{orderId}')
+  .onCreate(async (snap, context) => {
+    try {
+      const orderData = snap.data();
+      const orderId = snap.id;
+
+      console.log('📧 Processing order for email:', orderId);
+
+      // Extract email from order
+      const customerEmail = orderData?.shipping?.email || orderData?.email;
+      if (!customerEmail) {
+        console.warn('⚠️ No customer email found for order:', orderId);
+        return;
+      }
+
+      // Only send if payment is verified (razorpayPaymentId indicates successful payment)
+      const isPaymentVerified = orderData.razorpayPaymentId || orderData.paymentId;
+      if (!isPaymentVerified) {
+        console.log('⏳ Payment not yet verified for order:', orderId, 'Status:', orderData.status);
+        return;
+      }
+
+      const customerName = orderData?.shipping?.fullName || orderData?.shipping?.name || 'Customer';
+      const shippingAddress = orderData?.shipping?.address || 'Address not provided';
+      const paymentStatus = orderData.status || 'Pending';
+      const totalAmount = orderData.total || 0;
+      const shippingCost = orderData.shippingCost || 0;
+      const orderDate = orderData.date ? new Date(orderData.date).toLocaleDateString('en-IN') : new Date().toLocaleDateString('en-IN');
+
+      // Fetch product details for each item in the order
+      const items = orderData.items || [];
+      console.log('📧 Order items:', items);
+      
+      const orderItems = await Promise.all(
+        items.map(async (item) => {
+          try {
+            // Item should already have all details from cart
+            return {
+              name: item.name || item.productName || item.title || 'Product',
+              quantity: item.quantity || item.qty || 1,
+              price: item.price || 0,
+              image: item.productImage || item.image || null
+            };
+          } catch (err) {
+            console.error('Error processing item:', item, err);
+            return {
+              name: item.name || item.productName || 'Product',
+              quantity: item.quantity || item.qty || 1,
+              price: item.price || 0,
+              image: item.productImage || null
+            };
+          }
+        })
+      );
+
+      console.log('📧 Processed order items for email:', orderItems);
+
+      // Build HTML email
+      const htmlEmail = buildOrderConfirmationEmailHTML({
+        orderItems,
+        orderDate,
+        orderId,
+        customerName,
+        customerEmail,
+        shippingAddress,
+        paymentStatus,
+        shippingCost,
+        totalAmount
+      });
+
+      // Send email using Gmail
+      await sendEmailViaGmail(
+        customerEmail,
+        customerName,
+        `Order Confirmation - Order #${orderId}`,
+        htmlEmail
+      );
+
+      console.log('✅ Order confirmation email sent to:', customerEmail);
+    } catch (error) {
+      console.error('❌ Error sending order confirmation email:', error);
+    }
+  });
+
+/**
+ * Build beautiful HTML email with order details and product images
+ */
+function buildOrderConfirmationEmailHTML(data) {
+  const {
+    orderItems,
+    orderDate,
+    orderId,
+    customerName,
+    customerEmail,
+    shippingAddress,
+    paymentStatus,
+    shippingCost,
+    totalAmount
+  } = data;
+
+  const itemsHtml = orderItems
+    .map(
+      (item) => `
+    <tr style="border-bottom: 1px solid #e0d6cd;">
+      <td style="padding: 12px 8px; width: 70px;">
+        ${
+          item.image
+            ? `<img src="${item.image}" alt="${item.name}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 4px; border: 1px solid #e0d6cd;">`
+            : '<div style="width: 60px; height: 60px; background: #f0f0f0; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 11px; color: #999;">No Image</div>'
+        }
+      </td>
+      <td style="padding: 12px 8px;">
+        <div style="font-weight: 600; color: #3e2723; font-size: 13px;">${item.name}</div>
+        <div style="font-size: 12px; color: #7a6a5f; margin-top: 4px;">Qty: ${item.quantity}</div>
+      </td>
+      <td style="padding: 12px 8px; text-align: right; font-weight: 600; color: #3e2723; font-size: 13px;">₹${parseFloat(item.price).toFixed(2)}</td>
+    </tr>
+  `
+    )
+    .join('');
+
+  const statusColor = paymentStatus === 'Paid' || paymentStatus === 'successful' ? '#4CAF50' : '#FF9800';
+  const statusText = paymentStatus === 'Paid' || paymentStatus === 'successful' ? '✅ Paid' : '⏳ Pending';
+
+  return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background-color: #f8f6f4;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 640px;
+      margin: 20px auto;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      overflow: hidden;
+    }
+    .header {
+      background: linear-gradient(135deg, #3e2723 0%, #5d4037 100%);
+      color: #fff;
+      padding: 24px;
+      text-align: center;
+    }
+    .header h1 {
+      margin: 0;
+      font-size: 24px;
+      font-weight: 700;
+    }
+    .header p {
+      margin: 8px 0 0 0;
+      font-size: 13px;
+      opacity: 0.9;
+    }
+    .content {
+      padding: 24px;
+    }
+    .order-summary {
+      background: #f8f6f4;
+      padding: 16px;
+      border-radius: 6px;
+      border-left: 4px solid #bf360c;
+      margin-bottom: 24px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .summary-item label {
+      font-size: 11px;
+      color: #7a6a5f;
+      text-transform: uppercase;
+      font-weight: 600;
+      margin-bottom: 4px;
+      display: block;
+    }
+    .summary-item value {
+      font-size: 16px;
+      color: #3e2723;
+      font-weight: 700;
+      display: block;
+    }
+    .section {
+      margin-bottom: 24px;
+    }
+    .section h3 {
+      margin: 0 0 12px 0;
+      color: #3e2723;
+      font-size: 14px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    .info-box {
+      background: #faf7f5;
+      padding: 12px;
+      border-radius: 6px;
+      margin-bottom: 12px;
+    }
+    .info-row {
+      margin-bottom: 8px;
+      font-size: 13px;
+    }
+    .info-row label {
+      font-weight: 600;
+      color: #7a6a5f;
+      font-size: 11px;
+      display: block;
+      margin-bottom: 2px;
+    }
+    .info-row value {
+      color: #3e2723;
+      display: block;
+    }
+    .address {
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      color: #6b5a4a;
+      line-height: 1.6;
+    }
+    .items-table {
+      width: 100%;
+      border-collapse: collapse;
+      border: 1px solid #e0d6cd;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    .items-table td {
+      padding: 12px 8px;
+    }
+    .totals {
+      margin-top: 20px;
+      padding-top: 16px;
+      border-top: 2px solid #e0d6cd;
+    }
+    .total-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      font-size: 13px;
+    }
+    .total-row.final {
+      padding: 12px 0;
+      border-top: 2px solid #e0d6cd;
+      font-size: 16px;
+      font-weight: 700;
+    }
+    .total-row label {
+      color: #7a6a5f;
+    }
+    .total-row.final label {
+      color: #3e2723;
+    }
+    .total-row value {
+      font-weight: 600;
+      color: #3e2723;
+    }
+    .total-row.final value {
+      color: #bf360c;
+      font-size: 18px;
+    }
+    .footer {
+      background: #f8f6f4;
+      padding: 16px 24px;
+      border-top: 1px solid #e0d6cd;
+      text-align: center;
+      font-size: 11px;
+      color: #8b7a6d;
+    }
+    .support {
+      background: #fff3e0;
+      border: 1px solid #ffe0b2;
+      border-radius: 6px;
+      padding: 16px;
+      margin: 24px 0;
+      font-size: 12px;
+      color: #e65100;
+      line-height: 1.6;
+    }
+    .support strong {
+      display: block;
+      margin-bottom: 8px;
+    }
+    .success {
+      background: #e8f5e9;
+      border: 1px solid #a5d6a7;
+      border-radius: 6px;
+      padding: 16px;
+      margin-bottom: 24px;
+      font-size: 12px;
+      color: #2e7d32;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>✅ Order Confirmed!</h1>
+      <p>Thank you for your purchase at Bold & Brew</p>
+    </div>
+
+    <div class="content">
+      <!-- Success Message -->
+      <div class="success">
+        Your order has been successfully placed and payment received. We'll process it right away!
+      </div>
+
+      <!-- Order Summary -->
+      <div class="order-summary">
+        <div class="summary-item">
+          <label>Order ID</label>
+          <value>${orderId}</value>
+        </div>
+        <div class="summary-item">
+          <label>Payment Status</label>
+          <value style="color: ${statusColor};">${statusText}</value>
+        </div>
+      </div>
+
+      <!-- Customer Information -->
+      <div class="section">
+        <h3>Customer Information</h3>
+        <div class="info-box">
+          <div class="info-row">
+            <label>Name</label>
+            <value>${customerName}</value>
+          </div>
+          <div class="info-row">
+            <label>Email</label>
+            <value><a href="mailto:${customerEmail}" style="color: #bf360c; text-decoration: none;">${customerEmail}</a></value>
+          </div>
+        </div>
+      </div>
+
+      <!-- Delivery Address -->
+      <div class="section">
+        <h3>Delivery Address</h3>
+        <div class="info-box" style="border-left: 3px solid #bf360c;">
+          <div class="address">${shippingAddress}</div>
+        </div>
+      </div>
+
+      <!-- Order Items -->
+      <div class="section">
+        <h3>Order Items</h3>
+        <table class="items-table">
+          <tbody>
+            ${itemsHtml}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Totals -->
+      <div class="totals">
+        <div class="total-row">
+          <label>Shipping Cost:</label>
+          <value>₹${parseFloat(shippingCost).toFixed(2)}</value>
+        </div>
+        <div class="total-row final">
+          <label>Total Amount:</label>
+          <value>₹${parseFloat(totalAmount).toFixed(2)}</value>
+        </div>
+      </div>
+
+      <!-- Support -->
+      <div class="support">
+        <strong>Need Help?</strong>
+        If you have any questions about your order, please reply to this email or contact us at boldandbrew@gmail.com
+      </div>
+    </div>
+
+    <div class="footer">
+      <p>Bold & Brew Coffee - Premium Instant Coffee</p>
+      <p style="margin: 4px 0 0 0; opacity: 0.7;">This is an automated email. Please do not reply with attachments.</p>
+    </div>
+  </div>
+</body>
+</html>
+  `;
+}
+
+/**
+ * Send email via Gmail using Nodemailer
+ * Gmail credentials should be stored in Firebase environment variables
+ */
+async function sendEmailViaGmail(toEmail, toName, subject, htmlBody) {
+  try {
+    // Get Gmail credentials from Firebase environment variables
+    // You need to set these using: firebase functions:config:set gmail.email="..." gmail.password="..."
+    // Or use a Gmail App Password
+    const cfg = functions.config && functions.config().gmail ? functions.config().gmail : null;
+
+    if (!cfg || !cfg.email || !cfg.password) {
+      console.warn('⚠️ Gmail credentials not configured in Firebase environment');
+      console.warn('Set them using: firebase functions:config:set gmail.email="..." gmail.password="..."');
+      // For development, you can use a test email service or hardcode
+      // But NEVER hardcode credentials in production!
+      return;
+    }
+
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: cfg.email,
+        pass: cfg.password
+      }
+    });
+
+    const mailOptions = {
+      from: `Bold & Brew <${cfg.email}>`,
+      to: toEmail,
+      replyTo: 'boldandbrew@gmail.com',
+      subject: subject,
+      html: htmlBody
+    };
+
+    const info = await transporter.sendMail(mailOptions);
+    console.log('✅ Email sent successfully:', info.response);
+    return info;
+  } catch (error) {
+    console.error('❌ Error sending email:', error);
+    throw error;
+  }
+}
 
 // REMOVE diagnostic listPickupAddresses (no longer needed)
 // (Leaving existing export commented for clarity; will not be deployed.)
