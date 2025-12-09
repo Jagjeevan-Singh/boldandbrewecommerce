@@ -32,21 +32,37 @@ export default function OrderConfirmed() {
         
         if (!existingSnap.empty) {
           // Found the order saved by server
-          const d = { id: existingSnap.docs[0].id, ...existingSnap.docs[0].data() };
+          const orderDoc = existingSnap.docs[0];
+          const orderDataRaw = orderDoc.data();
+          const d = { id: orderDoc.id, ...orderDataRaw };
           console.log('✅ Order found from server:', d);
+          console.log('📦 Order items:', d.items);
+          console.log('📅 Order date:', d.date, 'Type:', typeof d.date);
           setOrderData(d);
           return;
         }
 
-        // If still not found after a short delay, log it
-        console.warn('⚠️ Order not found in Firestore yet. Server may still be processing.');
+        // If still not found, retry after longer delay
+        console.warn('⚠️ Order not found in Firestore yet. Server may still be processing. Retrying...');
       } catch (err) {
         console.error("❌ Failed to fetch order:", err);
       }
     };
 
-    // Wait a moment for server to save, then fetch
-    setTimeout(saveOrder, 500);
+    // Initial fetch after 500ms, then retry after 2 seconds if not found
+    const timeoutId1 = setTimeout(saveOrder, 500);
+    const timeoutId2 = setTimeout(() => {
+      // Check again in case first attempt didn't find it
+      if (!orderData) {
+        saveOrder();
+      }
+    }, 2000);
+
+    // Cleanup timeouts on unmount
+    return () => {
+      clearTimeout(timeoutId1);
+      clearTimeout(timeoutId2);
+    };
   }, [payment, checkout, navigate]);
 
   // Initialize state for email tracking
@@ -111,11 +127,31 @@ export default function OrderConfirmed() {
             <h2 className="oc-title">Thank you — your order is confirmed!</h2>
 
             <div className="oc-details">
+              <div className="oc-row"><span>Order ID</span><strong>{orderData?.id || payment?.razorpay_order_id || payment?.order_id || 'N/A'}</strong></div>
               <div className="oc-row"><span>Payment ID</span><strong>{payment?.razorpay_payment_id || payment?.id || 'N/A'}</strong></div>
-              <div className="oc-row"><span>Order ID</span><strong>{payment?.razorpay_order_id || payment?.order_id || orderData?.razorpayOrderId || 'N/A'}</strong></div>
-              <div className="oc-row"><span>Date</span><strong>{(orderData?.date && orderData.date.toDate) ? orderData.date.toDate().toLocaleString() : (orderData?.createdAt && orderData.createdAt.toDate ? orderData.createdAt.toDate().toLocaleString() : 'N/A')}</strong></div>
+              <div className="oc-row"><span>Date</span><strong>{(() => {
+                if (!orderData?.date) return 'N/A';
+                try {
+                  // Handle Firestore Timestamp objects
+                  if (orderData.date.toDate && typeof orderData.date.toDate === 'function') {
+                    return orderData.date.toDate().toLocaleDateString('en-IN') + ' ' + orderData.date.toDate().toLocaleTimeString('en-IN');
+                  }
+                  // Handle Date objects
+                  if (orderData.date instanceof Date) {
+                    return orderData.date.toLocaleDateString('en-IN') + ' ' + orderData.date.toLocaleTimeString('en-IN');
+                  }
+                  // Handle timestamp numbers
+                  if (typeof orderData.date === 'number') {
+                    return new Date(orderData.date).toLocaleDateString('en-IN') + ' ' + new Date(orderData.date).toLocaleTimeString('en-IN');
+                  }
+                  return 'N/A';
+                } catch (e) {
+                  console.error('Date parsing error:', e, orderData.date);
+                  return 'N/A';
+                }
+              })()}</strong></div>
               <div className="oc-row"><span>Phone</span><strong>{displayPhone}</strong></div>
-                  </div>
+            </div>
           </div>
         </div>
 
