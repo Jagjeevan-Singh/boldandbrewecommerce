@@ -73,7 +73,7 @@ exports.verifyRazorpayPayment = functions.https.onRequest((req, res) => {
     // Data includes verification details + all order data sent from Checkout.jsx
     const { 
         orderId, paymentId, signature, 
-        cartItems, total, shippingForm, userId, saveForFuture 
+        cartItems, total, shippingForm, userId, saveForFuture, paymentMode 
     } = req.body;
     
   // Get the SECRET key from the secure functions config (safely)
@@ -108,7 +108,8 @@ exports.verifyRazorpayPayment = functions.https.onRequest((req, res) => {
             shipping: shippingForm,
             razorpayPaymentId: paymentId,
             razorpayOrderId: orderId,
-            razorpaySignature: signature
+            razorpaySignature: signature,
+            paymentMode: paymentMode || 'Razorpay'
         });
         
         // Save address for future
@@ -708,10 +709,20 @@ exports.sendOrderConfirmationEmail = functions.firestore
 
       const customerName = orderData?.shipping?.fullName || orderData?.shipping?.name || 'Customer';
       const shippingAddress = orderData?.shipping?.address || 'Address not provided';
-      const paymentStatus = orderData.status || 'Pending';
       const totalAmount = orderData.total || 0;
       const shippingCost = orderData.shippingCost || 0;
       const orderDate = orderData.date ? new Date(orderData.date).toLocaleDateString('en-IN') : new Date().toLocaleDateString('en-IN');
+      
+      // Payment status is always 'Successful' when email is sent (because razorpayPaymentId exists)
+      const paymentStatus = 'Successful';
+      
+      // Determine payment mode
+      let paymentMode = 'Razorpay';
+      if (orderData.paymentMode) {
+        paymentMode = orderData.paymentMode;
+      } else if (orderData.paymentMethod) {
+        paymentMode = orderData.paymentMethod;
+      }
 
       // Fetch product details for each item in the order
       const items = orderData.items || [];
@@ -721,19 +732,21 @@ exports.sendOrderConfirmationEmail = functions.firestore
         items.map(async (item) => {
           try {
             // Item should already have all details from cart
+            // Try multiple image field names
+            const imageUrl = item.productImage || item.mainImage || item.image || item.imageUrl || null;
             return {
               name: item.name || item.productName || item.title || 'Product',
               quantity: item.quantity || item.qty || 1,
-              price: item.price || 0,
-              image: item.productImage || item.image || null
+              price: item.price || item.unitPrice || 0,
+              image: imageUrl
             };
           } catch (err) {
             console.error('Error processing item:', item, err);
             return {
               name: item.name || item.productName || 'Product',
               quantity: item.quantity || item.qty || 1,
-              price: item.price || 0,
-              image: item.productImage || null
+              price: item.price || item.unitPrice || 0,
+              image: item.productImage || item.mainImage || item.image || null
             };
           }
         })
@@ -750,6 +763,7 @@ exports.sendOrderConfirmationEmail = functions.firestore
         customerEmail,
         shippingAddress,
         paymentStatus,
+        paymentMode,
         shippingCost,
         totalAmount
       });
@@ -780,6 +794,7 @@ function buildOrderConfirmationEmailHTML(data) {
     customerEmail,
     shippingAddress,
     paymentStatus,
+    paymentMode,
     shippingCost,
     totalAmount
   } = data;
@@ -805,8 +820,8 @@ function buildOrderConfirmationEmailHTML(data) {
     )
     .join('');
 
-  const statusColor = paymentStatus === 'Paid' || paymentStatus === 'successful' ? '#4CAF50' : '#FF9800';
-  const statusText = paymentStatus === 'Paid' || paymentStatus === 'successful' ? '✅ Paid' : '⏳ Pending';
+  const statusColor = '#4CAF50'; // Always green since email only sends on successful payment
+  const statusText = '✅ Successful';
 
   return `
 <!DOCTYPE html>
@@ -831,7 +846,7 @@ function buildOrderConfirmationEmailHTML(data) {
     }
     .header {
       background: linear-gradient(135deg, #3e2723 0%, #5d4037 100%);
-      color: #fff;
+      color: #ffffff;
       padding: 24px;
       text-align: center;
     }
@@ -839,11 +854,13 @@ function buildOrderConfirmationEmailHTML(data) {
       margin: 0;
       font-size: 24px;
       font-weight: 700;
+      color: #ffffff;
     }
     .header p {
       margin: 8px 0 0 0;
       font-size: 13px;
-      opacity: 0.9;
+      opacity: 1;
+      color: #ffffff;
     }
     .content {
       padding: 24px;
@@ -855,8 +872,8 @@ function buildOrderConfirmationEmailHTML(data) {
       border-left: 4px solid #bf360c;
       margin-bottom: 24px;
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px;
+      grid-template-columns: 1fr 1fr 1fr 1fr;
+      gap: 12px;
     }
     .summary-item label {
       font-size: 11px;
@@ -1004,8 +1021,16 @@ function buildOrderConfirmationEmailHTML(data) {
           <value>${orderId}</value>
         </div>
         <div class="summary-item">
+          <label>Payment Mode</label>
+          <value>${paymentMode}</value>
+        </div>
+        <div class="summary-item">
           <label>Payment Status</label>
           <value style="color: ${statusColor};">${statusText}</value>
+        </div>
+        <div class="summary-item">
+          <label>Order Date</label>
+          <value>${orderDate}</value>
         </div>
       </div>
 

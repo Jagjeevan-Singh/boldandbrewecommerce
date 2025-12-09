@@ -236,7 +236,8 @@ const Checkout = ({ cartItems = [], total = 0 }) => {
             total: total,
             shippingForm: form,
             userId: user.uid,
-            saveForFuture: form.saveForFuture
+            saveForFuture: form.saveForFuture,
+            paymentMode: 'Razorpay' // Payment mode determined by Razorpay (COD/UPI/NetBanking/Card)
           })
         }).then(verifyRes => verifyRes.json())
           .then(verifyBody => {
