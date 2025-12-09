@@ -40,6 +40,24 @@
 
 /* Show mobile product details only on mobile */
 @media (max-width: 900px) {
+  .od-container {
+    padding: 16px 12px;
+    overflow-x: hidden;
+  }
+
+  .od-card,
+  .od-body,
+  .od-section,
+  .od-items-table {
+    max-width: 100%;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .od-items-table th,
+  .od-items-table td {
+    box-sizing: border-box;
+  }
   .od-desktop-product-details {
     display: none !important;
   }
@@ -604,6 +622,7 @@
     margin-bottom: 14px;
     box-sizing: border-box;
     max-width: 100%;
+    width: 100%;
     overflow: hidden;
   }
 
