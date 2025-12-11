@@ -27,6 +27,17 @@ export default defineConfig({
   },
   build: {
     // Increase chunk size warning threshold (in kB)
-    chunkSizeWarningLimit: 1024
+    chunkSizeWarningLimit: 1024,
+    // Optimize build for production
+    minify: 'esbuild',
+    sourcemap: false,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom', 'react-router-dom'],
+          firebase: ['firebase/app', 'firebase/auth', 'firebase/firestore']
+        }
+      }
+    }
   }
 })

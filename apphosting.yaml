@@ -1,0 +1,18 @@
+# Firebase App Hosting configuration
+runConfig:
+  # Runtime configuration for the app
+  # Available CPU options: 1, 2, 4, 8
+  cpu: 1
+  # Available memory options (in GB): 0.5, 1, 2, 4, 8, 16, 32
+  memoryMiB: 512
+  # Maximum number of instances
+  maxInstances: 100
+  # Minimum number of instances (0 for autoscaling from zero)
+  minInstances: 0
+  # Concurrency - number of requests per instance
+  concurrency: 80
+
+env:
+  # Environment variables (set sensitive values in Firebase Console)
+  - variable: NODE_ENV
+    value: production
