@@ -152,6 +152,41 @@ exports.verifyRazorpayPayment = functions.https.onRequest((req, res) => {
             razorpaySignature: signature,
             paymentMode: paymentMethod // Use the fetched payment method
         });
+
+        // Step 4: Decrement product stock for each ordered item (idempotent-safe per product)
+        if (Array.isArray(cartItems) && cartItems.length) {
+          console.log('🧾 Starting stock decrement for items:', cartItems.length);
+          const results = await Promise.allSettled(
+            cartItems.map(async (it) => {
+              const pid = String(it.productId || it.id || '').trim();
+              const qty = Number(it.quantity || it.qty || 1) || 1;
+              if (!pid) {
+                console.warn('⚠️ Skipping stock decrement, missing product id for item:', it);
+                return;
+              }
+              const pref = db.collection('products').doc(pid);
+              await db.runTransaction(async (t) => {
+                const snap = await t.get(pref);
+                if (!snap.exists) {
+                  console.warn('⚠️ Product doc not found for stock decrement:', pid);
+                  return;
+                }
+                const cur = Number(snap.data().stock || 0) || 0;
+                const newVal = Math.max(0, cur - qty);
+                t.update(pref, {
+                  stock: newVal,
+                  updatedAt: admin.firestore.FieldValue.serverTimestamp()
+                });
+              });
+            })
+          );
+          const rejected = results.filter(r => r.status === 'rejected');
+          if (rejected.length) {
+            console.error('❌ Some stock decrements failed:', rejected.map(r => r.reason?.message || r.reason));
+          } else {
+            console.log('✅ Stock decremented for all items');
+          }
+        }
         
         // Save address for future
         if (saveForFuture) {
