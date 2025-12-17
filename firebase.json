@@ -16,4 +16,17 @@
       "port": 9099
     }
   }
-}
+  },
+  "hosting": [
+    {
+      "target": "boldandbrewecommerce",
+      "public": "dist",
+      "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+      "rewrites": [
+        {
+          "source": "**",
+          "destination": "/index.html"
+        }
+      ]
+    }
+  ]
