@@ -144,17 +144,22 @@ function ProductLanding({ products, onAddToCart, onAddToWishlist }) {
               ref={imgRef}
               src={selectedImage}
               alt={effectiveProduct.name}
-              style={{ cursor: 'zoom-in', width: '100%', maxWidth: 400, borderRadius: 12 }}
-              onMouseEnter={() => setShowZoom(true)}
+              style={{ cursor: isMobile ? 'default' : 'zoom-in', width: '100%', maxWidth: 400, borderRadius: 12 }}
+              onMouseEnter={() => { if (!isMobile) setShowZoom(true); }}
               onMouseLeave={() => setShowZoom(false)}
               onMouseMove={e => {
+                if (isMobile) return;
                 const rect = imgRef.current.getBoundingClientRect();
                 const x = e.clientX - rect.left;
                 const y = e.clientY - rect.top;
                 setZoomPos({ x, y });
               }}
+              onClick={() => {
+                // On mobile, if zoom gets stuck by some weird interaction, clicking it again clears it
+                if (isMobile) setShowZoom(false);
+              }}
             />
-            {showZoom && (() => {
+            {showZoom && !isMobile && (() => {
               // resolve actual image URL for local assets
               let zoomImgUrl = selectedImage;
               if (selectedImage && !selectedImage.startsWith('http')) {
@@ -248,7 +253,15 @@ function ProductLanding({ products, onAddToCart, onAddToWishlist }) {
           </div>
           <div className="description">
             <h4 style={{ fontWeight: 'bold', fontSize: '1.25em', marginBottom: '0.3em' }}>Description</h4>
-            <p>{effectiveProduct.description}</p>
+            {Array.isArray(effectiveProduct.description) ? (
+              <ul style={{ paddingLeft: '1.2rem', margin: '0 0 1rem 0' }}>
+                {effectiveProduct.description.map((point, idx) => (
+                  <li key={idx} style={{ marginBottom: '0.4rem', lineHeight: '1.5', color: '#555' }}>{point}</li>
+                ))}
+              </ul>
+            ) : (
+              <p>{effectiveProduct.description}</p>
+            )}
           </div>
         </div>
       </div>

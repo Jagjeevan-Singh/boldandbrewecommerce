@@ -637,7 +637,12 @@ function ProductsPage({ products, onAdd, onWishlist, searchTerm = '', setSearchT
                       textAlign: 'center',
                       fontWeight: '500',
                       lineHeight: '1.3',
-                      cursor: 'pointer'
+                      cursor: 'pointer',
+                      display: '-webkit-box',
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: 'vertical',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis'
                     }}>{product.name}</h3>
                     <div className="product-rating-row" style={{
                       margin: isMobile ? '4px 0 6px 0' : '4px 0 8px 0',

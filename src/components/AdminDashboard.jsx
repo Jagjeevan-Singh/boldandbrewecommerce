@@ -229,7 +229,13 @@ export default function AdminDashboard({ onCreateProduct, onEditProduct, onManag
                       <input type="number" value={p.stock ?? 0} onChange={e=>handleChange(p.id,'stock',e.target.value)} style={{width:'70px',padding:'6px 8px',border:'1.5px solid #bcae9e',borderRadius:6}} />
                     </td>
                     <td style={{padding:'10px 8px',minWidth:180}}>
-                      <textarea value={p.description} onChange={e=>handleChange(p.id,'description',e.target.value)} style={{width:'100%',padding:'6px 8px',border:'1.5px solid #bcae9e',borderRadius:6,fontSize:'1em',minHeight:40}} />
+                      {Array.isArray(p.description) ? (
+                        <div style={{fontSize:'0.85em', color:'#a67c52', fontStyle:'italic', padding:'8px'}}>
+                          [Bullet Points used. Click the <b>Edit (✏️)</b> button on the right to modify]
+                        </div>
+                      ) : (
+                        <textarea value={p.description || ''} onChange={e=>handleChange(p.id,'description',e.target.value)} style={{width:'100%',padding:'6px 8px',border:'1.5px solid #bcae9e',borderRadius:6,fontSize:'1em',minHeight:40}} />
+                      )}
                     </td>
                     <td style={{padding:'10px 8px'}}>
                       <input value={p.mainImage} onChange={e=>handleChange(p.id,'mainImage',e.target.value)} style={{width:'120px',padding:'6px 8px',border:'1.5px solid #bcae9e',borderRadius:6}} />

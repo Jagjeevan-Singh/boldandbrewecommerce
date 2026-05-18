@@ -1,21 +1,28 @@
 .banner-slider {
-  width: 100%;
+  width: 100vw;
+  max-width: 100%;
   height: auto; /* allow natural image height */
   position: relative;
   overflow: hidden;
   box-sizing: border-box;
 }
 
+.banner-slider picture {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
 .banner-image {
   width: 100%;
   height: auto;
   max-height: 100vh; /* don't exceed screen height */
-  object-fit: contain; /* show full image */
-  background-color: #000; /* fill space if aspect ratio doesn't match */
+  object-fit: cover; /* fill the entire container */
   padding-top: 0px;
   top: 100px;
   margin-top: 48px;
   box-sizing: border-box;
+  display: block;
 }
 .slick-prev,
 .slick-next {

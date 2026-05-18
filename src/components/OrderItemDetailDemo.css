@@ -1,0 +1,86 @@
+/* OrderItemDetailDemo.css - Demo page styling */
+
+.oid-demo-container {
+  max-width: 576px;
+  margin: 0 auto;
+  padding: 20px;
+  background: #f8f5f1;
+  min-height: 100vh;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+}
+
+.oid-demo-header {
+  text-align: center;
+  margin-bottom: 32px;
+  padding: 20px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(44, 24, 16, 0.06);
+}
+
+.oid-demo-header h1 {
+  color: #2c1810;
+  font-size: 1.5rem;
+  margin: 0 0 12px 0;
+  font-weight: 700;
+}
+
+.oid-demo-header p {
+  color: #7d6b5a;
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+.oid-demo-items {
+  margin-bottom: 32px;
+}
+
+.oid-demo-footer {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(44, 24, 16, 0.06);
+}
+
+.oid-demo-footer h2 {
+  color: #2c1810;
+  font-size: 1.2rem;
+  margin: 0 0 16px 0;
+  font-weight: 700;
+}
+
+.oid-demo-footer ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.oid-demo-footer li {
+  color: #5a4233;
+  font-size: 0.95rem;
+  padding: 8px 0;
+  border-bottom: 1px solid #f5ebe3;
+}
+
+.oid-demo-footer li:last-child {
+  border-bottom: none;
+}
+
+@media (max-width: 576px) {
+  .oid-demo-container {
+    padding: 16px;
+  }
+
+  .oid-demo-header {
+    padding: 16px;
+    margin-bottom: 24px;
+  }
+
+  .oid-demo-header h1 {
+    font-size: 1.25rem;
+  }
+
+  .oid-demo-header p {
+    font-size: 0.9rem;
+  }
+}

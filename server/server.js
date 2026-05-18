@@ -3,6 +3,7 @@ import fetch from 'node-fetch'
 import Razorpay from 'razorpay'
 import dotenv from 'dotenv'
 import cors from 'cors'
+import path from 'path'
 import sendOrderEmail from '../api/sendOrderEmail.js'
 
 dotenv.config()
@@ -83,6 +84,13 @@ app.post('/api/send-order-email', async (req, res) => {
 		res.status(500).json({ error: 'internal_server_error' })
 	}
 })
+
+app.use(express.static(path.join(process.cwd(), 'dist')));
+
+// Fallback for SPA routes (serve index.html for all non-API routes)
+app.use((req, res) => {
+	res.sendFile(path.join(process.cwd(), 'dist', 'index.html'))
+});
 
 app.listen(PORT, () => {
 	console.log(`Razorpay proxy server listening on http://localhost:${PORT}`)

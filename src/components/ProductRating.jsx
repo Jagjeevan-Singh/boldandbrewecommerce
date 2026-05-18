@@ -46,12 +46,19 @@ function ProductRating({ productId, onRatingUpdate }) {
       displayCount > 0
         ? `${displayAvg.toFixed(1)} out of 5 from ${displayCount} review${displayCount > 1 ? 's' : ''}`
         : 'No reviews yet'
-    }>
+    } style={{
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      flexWrap: 'nowrap',
+      whiteSpace: 'nowrap',
+      gap: '2px'
+    }}>
       {[1,2,3,4,5].map(i => (
-        <FaStar key={i} color={i <= Math.round(displayAvg) ? '#FFD700' : '#ccc'} style={{marginRight:2}} />
+        <FaStar key={i} color={i <= Math.round(displayAvg) ? '#FFD700' : '#ccc'} style={{ fontSize: '0.8rem' }} />
       ))}
-      <span className="product-rating-value">{displayAvg.toFixed(1)}</span>
-      <span className="product-rating-count">({displayCount})</span>
+      <span className="product-rating-value" style={{ fontSize: '0.8rem', marginLeft: '4px' }}>{displayAvg.toFixed(1)}</span>
+      <span className="product-rating-count" style={{ fontSize: '0.8rem', marginLeft: '2px' }}>({displayCount})</span>
     </div>
   );
 }

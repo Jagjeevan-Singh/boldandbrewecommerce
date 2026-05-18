@@ -35,7 +35,9 @@ export default function EditProduct({ product, onClose, onSaved }) {
   const [formData, setFormData] = useState({
     name: '',
     brand: '',
+    descriptionType: 'paragraph',
     description: '',
+    descriptionPointers: [''],
     mainImage: '',
     price: '',
     originalPrice: '',
@@ -59,10 +61,14 @@ export default function EditProduct({ product, onClose, onSaved }) {
     const imgs = Array.isArray(product.images) ? product.images.filter(i => i && String(i).trim() !== '') : [];
     const padded = [...imgs];
     while (padded.length < 7) padded.push('');
+    const isDescArray = Array.isArray(product.description);
+
     setFormData({
       name: product.name || '',
       brand: product.brand || '',
-      description: product.description || '',
+      descriptionType: isDescArray ? 'pointers' : 'paragraph',
+      description: isDescArray ? '' : (product.description || ''),
+      descriptionPointers: isDescArray && product.description.length > 0 ? product.description : [''],
       mainImage: product.mainImage || '',
       price: String(product.price ?? ''),
       originalPrice: String(product.originalPrice ?? ''),
@@ -98,7 +104,14 @@ export default function EditProduct({ product, onClose, onSaved }) {
   const validate = () => {
     if (!formData.name.trim()) return 'Name is required';
     if (!formData.brand.trim()) return 'Brand is required';
-    if (!formData.description.trim()) return 'Description is required';
+    
+    if (formData.descriptionType === 'paragraph') {
+      if (!formData.description.trim()) return 'Description is required';
+    } else {
+      const validPointers = formData.descriptionPointers.filter(p => p.trim());
+      if (validPointers.length === 0) return 'At least one description pointer is required';
+    }
+
     if (!formData.mainImage.trim()) return 'Main image URL is required';
     if (!formData.price || isNaN(parseFloat(formData.price))) return 'Valid price required';
     if (!formData.originalPrice || isNaN(parseFloat(formData.originalPrice))) return 'Valid original price required';
@@ -121,10 +134,16 @@ export default function EditProduct({ product, onClose, onSaved }) {
     setLoading(true);
     try {
       const filteredImages = formData.images.filter(img => img && img.trim() !== '');
+
+      let finalDescription = formData.description.trim();
+      if (formData.descriptionType === 'pointers') {
+        finalDescription = formData.descriptionPointers.map(p => p.trim()).filter(p => p !== '');
+      }
+
       const updateData = {
         name: formData.name.trim(),
         brand: formData.brand.trim(),
-        description: formData.description.trim(),
+        description: finalDescription,
         mainImage: formData.mainImage.trim(),
         price: parseFloat(formData.price),
         originalPrice: parseFloat(formData.originalPrice),
@@ -189,10 +208,65 @@ export default function EditProduct({ product, onClose, onSaved }) {
             <label>Brand</label>
             <input name="brand" value={formData.brand} onChange={handleInputChange} />
           </div>
+          <div className="edit-product-section">
+            <label>Description Type</label>
+            <select
+              name="descriptionType"
+              value={formData.descriptionType}
+              onChange={handleInputChange}
+              style={{ padding: '0.6rem', borderRadius: '8px', border: '2px solid #d9c9bb', marginBottom: '10px', width: '100%', fontSize: '0.95rem' }}
+            >
+              <option value="paragraph">Paragraph</option>
+              <option value="pointers">Bullet Points</option>
+            </select>
+          </div>
+
+          {formData.descriptionType === 'paragraph' ? (
             <div className="edit-product-section">
               <label>Description</label>
               <textarea name="description" value={formData.description} onChange={handleInputChange} />
             </div>
+          ) : (
+            <div className="edit-product-section">
+              <label>Description Pointers (up to 6)</label>
+              {formData.descriptionPointers.map((pointer, idx) => (
+                <div key={idx} style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
+                  <input
+                    type="text"
+                    value={pointer}
+                    onChange={(e) => {
+                      const newPointers = [...formData.descriptionPointers];
+                      newPointers[idx] = e.target.value;
+                      setFormData(prev => ({ ...prev, descriptionPointers: newPointers }));
+                    }}
+                    placeholder={`Pointer ${idx + 1}`}
+                    style={{ flex: 1 }}
+                  />
+                  {formData.descriptionPointers.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const newPointers = formData.descriptionPointers.filter((_, i) => i !== idx);
+                        setFormData(prev => ({ ...prev, descriptionPointers: newPointers }));
+                      }}
+                      style={{ padding: '0 12px', background: '#e53935', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
+              ))}
+              {formData.descriptionPointers.length < 6 && (
+                <button
+                  type="button"
+                  onClick={() => setFormData(prev => ({ ...prev, descriptionPointers: [...prev.descriptionPointers, ''] }))}
+                  style={{ marginTop: '4px', padding: '6px 12px', background: '#7c5a3a', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+                >
+                  + Add Pointer
+                </button>
+              )}
+            </div>
+          )}
           <div className="edit-product-grid-3">
             <div className="edit-product-section">
               <label>Price (₹)</label>

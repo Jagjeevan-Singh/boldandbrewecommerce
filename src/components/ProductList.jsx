@@ -48,7 +48,7 @@ function ProductList({ products, onAdd, onWishlist }) {
     fontWeight: '400',
     fontFamily: "'Pinyon Script', cursive",
     color: '#ffffff',
-    margin: isMobile ? '0 -20px 20px -20px' : '0 -40px 30px -40px',
+    margin: isMobile ? '0 0 20px 0' : '0 0 30px 0',
     letterSpacing: isMobile ? '1.5px' : '2.5px',
     textAlign: 'center',
     textShadow: '0 2px 4px rgba(0, 0, 0, 0.3)',
@@ -58,7 +58,8 @@ function ProductList({ products, onAdd, onWishlist }) {
     boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
     boxSizing: 'border-box',
     border: 'none',
-    whiteSpace: isMobile ? 'nowrap' : 'normal'
+    whiteSpace: 'normal',
+    wordWrap: 'break-word'
   }}>India's #1 Instant Coffee</h2>
       <div className="product-grid" style={{
         display: 'grid',
@@ -87,7 +88,9 @@ function ProductList({ products, onAdd, onWishlist }) {
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
-              transition: 'transform 0.3s ease, box-shadow 0.3s ease'
+              transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+              minWidth: 0,
+              wordBreak: 'break-word'
             }}>
               <button
                 className={`wishlist-icon-btn${product.isWishlisted ? ' wishlisted' : ''}`}
@@ -129,7 +132,12 @@ function ProductList({ products, onAdd, onWishlist }) {
                   color: '#333333',
                   textAlign: 'center',
                   fontWeight: '500',
-                  lineHeight: '1.3'
+                  lineHeight: '1.3',
+                  display: '-webkit-box',
+                  WebkitLineClamp: 2,
+                  WebkitBoxOrient: 'vertical',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis'
                 }}
               >
                 {product.name}

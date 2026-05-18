@@ -7,7 +7,9 @@ export default function CreateProduct({ onClose }) {
   const [formData, setFormData] = useState({
     name: '',
     brand: '',
+    descriptionType: 'paragraph', // 'paragraph' or 'pointers'
     description: '',
+    descriptionPointers: [''], // Initial empty pointer
     mainImage: '',
     price: '',
     originalPrice: '',
@@ -66,7 +68,14 @@ export default function CreateProduct({ onClose }) {
   const validateForm = () => {
     if (!formData.name.trim()) return 'Product name is required';
     if (!formData.brand.trim()) return 'Brand is required';
-    if (!formData.description.trim()) return 'Description is required';
+    
+    if (formData.descriptionType === 'paragraph') {
+      if (!formData.description.trim()) return 'Description is required';
+    } else {
+      const validPointers = formData.descriptionPointers.filter(p => p.trim());
+      if (validPointers.length === 0) return 'At least one description pointer is required';
+    }
+
     if (!formData.mainImage.trim()) return 'Main image URL is required';
     if (!formData.mainImage.startsWith('http')) return 'Main image must be a valid URL';
     if (!formData.price || parseFloat(formData.price) <= 0) return 'Valid price is required';
@@ -101,10 +110,15 @@ export default function CreateProduct({ onClose }) {
       // Filter out empty image URLs
       const filteredImages = formData.images.filter(img => img.trim());
 
+      let finalDescription = formData.description.trim();
+      if (formData.descriptionType === 'pointers') {
+        finalDescription = formData.descriptionPointers.map(p => p.trim()).filter(p => p !== '');
+      }
+
       const productData = {
         name: formData.name.trim(),
         brand: formData.brand.trim(),
-        description: formData.description.trim(),
+        description: finalDescription,
         mainImage: formData.mainImage.trim(),
         price: parseFloat(formData.price),
         originalPrice: parseFloat(formData.originalPrice),
@@ -131,7 +145,9 @@ export default function CreateProduct({ onClose }) {
         setFormData({
           name: '',
           brand: '',
+          descriptionType: 'paragraph',
           description: '',
+          descriptionPointers: [''],
           mainImage: '',
           price: '',
           originalPrice: '',
@@ -193,15 +209,70 @@ export default function CreateProduct({ onClose }) {
             </div>
 
             <div className="form-group">
-              <label>Description *</label>
-              <textarea
-                name="description"
-                value={formData.description}
+              <label>Description Type *</label>
+              <select
+                name="descriptionType"
+                value={formData.descriptionType}
                 onChange={handleInputChange}
-                placeholder="Enter product description"
-                rows="4"
-              />
+                style={{ padding: '0.6rem', borderRadius: '8px', border: '1px solid #ccc', marginBottom: '10px' }}
+              >
+                <option value="paragraph">Paragraph</option>
+                <option value="pointers">Bullet Points</option>
+              </select>
             </div>
+
+            {formData.descriptionType === 'paragraph' ? (
+              <div className="form-group">
+                <label>Description *</label>
+                <textarea
+                  name="description"
+                  value={formData.description}
+                  onChange={handleInputChange}
+                  placeholder="Enter product description"
+                  rows="4"
+                />
+              </div>
+            ) : (
+              <div className="form-group">
+                <label>Description Pointers (up to 6) *</label>
+                {formData.descriptionPointers.map((pointer, idx) => (
+                  <div key={idx} style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
+                    <input
+                      type="text"
+                      value={pointer}
+                      onChange={(e) => {
+                        const newPointers = [...formData.descriptionPointers];
+                        newPointers[idx] = e.target.value;
+                        setFormData(prev => ({ ...prev, descriptionPointers: newPointers }));
+                      }}
+                      placeholder={`Pointer ${idx + 1}`}
+                      style={{ flex: 1 }}
+                    />
+                    {formData.descriptionPointers.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const newPointers = formData.descriptionPointers.filter((_, i) => i !== idx);
+                          setFormData(prev => ({ ...prev, descriptionPointers: newPointers }));
+                        }}
+                        style={{ padding: '0 12px', background: '#e53935', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+                      >
+                        ✕
+                      </button>
+                    )}
+                  </div>
+                ))}
+                {formData.descriptionPointers.length < 6 && (
+                  <button
+                    type="button"
+                    onClick={() => setFormData(prev => ({ ...prev, descriptionPointers: [...prev.descriptionPointers, ''] }))}
+                    style={{ marginTop: '4px', padding: '6px 12px', background: '#7c5a3a', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+                  >
+                    + Add Pointer
+                  </button>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Pricing Section */}

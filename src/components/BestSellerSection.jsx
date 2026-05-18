@@ -47,14 +47,18 @@ export default function BestSellerSection({ onAdd, onWishlist, products = [] }) 
   const norm = str => String(str || '').trim().toUpperCase();
 
   const getNormalizedProduct = (p) => {
-    const real = products
-      .filter(prod => !EXCLUDE_NAMES.includes(norm(prod.name)))
-      .find(prod => norm(prod.name) === norm(p.name));
+    // If p is already a live product, just use it, fallback to find by name
+    const real = p.id && products.find(prod => prod.id === p.id) 
+      ? p 
+      : products
+          .filter(prod => !EXCLUDE_NAMES.includes(norm(prod.name)))
+          .find(prod => norm(prod.name) === norm(p.name));
 
     const price = real?.price ?? p.price;
     const originalPrice = real?.originalPrice ?? real?.mrp ?? real?.compareAtPrice ?? p.originalPrice ?? price;
     const name = real?.name || p.name;
-    const desc = real?.description || p.desc || p.description || '';
+    let rawDesc = real?.description || p.desc || p.description || '';
+    const desc = Array.isArray(rawDesc) ? rawDesc.join(' • ') : rawDesc;
 
     return {
       ...p,
@@ -72,6 +76,10 @@ export default function BestSellerSection({ onAdd, onWishlist, products = [] }) 
     };
   };
 
+  const dynamicBestSellers = products.filter(p => p.isBestSeller === true);
+  const itemsToDisplay = dynamicBestSellers.length > 0 ? dynamicBestSellers : bestSellers;
+  const highlightColors = ['#f7e7ce', '#f3e6e3', '#e0f7fa', '#fff3e0', '#f1f8e9', '#fce4ec'];
+
   return (
     <section className="best-seller-section">
       <div className="best-seller-content">
@@ -79,14 +87,14 @@ export default function BestSellerSection({ onAdd, onWishlist, products = [] }) 
           <span role="img" aria-label="star"></span> Best  Sellers <span role="img" aria-label="star"></span>
         </h2>
   <div className="best-seller-grid" ref={gridRef}>
-          {bestSellers.map((p) => {
+          {itemsToDisplay.map((p, index) => {
             const normalized = getNormalizedProduct(p);
             const outOfStock = normalized.stock === 0;
             return (
               <div
                 className="best-seller-card"
                 key={normalized.id}
-                style={{ background: p.highlight, opacity: outOfStock ? 0.7 : 1 }}
+                style={{ background: p.highlight || highlightColors[index % highlightColors.length], opacity: outOfStock ? 0.7 : 1 }}
                 onClick={() => navigate(`/product/${encodeURIComponent(normalized.name.replace(/ /g, '-').toLowerCase())}`, { state: { product: normalized } })}
                 tabIndex={0}
                 role="button"

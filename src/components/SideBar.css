@@ -9,6 +9,15 @@
   cursor: pointer;
 }
 
+@media (max-width: 768px) {
+  .sidebar-hamburger {
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+}
+
+
 .sidebar-overlay {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
