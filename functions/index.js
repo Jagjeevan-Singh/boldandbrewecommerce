@@ -1218,4 +1218,255 @@ async function sendEmailViaGmail(toEmail, toName, subject, htmlBody) {
 
 // REMOVE diagnostic listPickupAddresses (no longer needed)
 // (Leaving existing export commented for clarity; will not be deployed.)
-// exports.listPickupAddresses = functions.region('asia-south1').https.onCall(async () => { throw new functions.https.HttpsError('unavailable','Removed'); });
+
+// ================================================================================
+// FUNCTION: SEND NEWSLETTER WELCOME EMAIL
+// ================================================================================
+exports.sendNewsletterWelcomeEmail = functions.firestore
+  .document('newsletter_subscribers/{subscriberId}')
+  .onCreate(async (snap, context) => {
+    try {
+      const data = snap.data();
+      const customerEmail = data.email;
+      
+      if (!customerEmail) {
+        console.warn('⚠️ No email found for newsletter subscription:', snap.id);
+        return;
+      }
+
+      console.log('📧 Processing newsletter welcome email for:', customerEmail);
+
+      const htmlEmail = `
+<!DOCTYPE html>
+<html lang="en" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="x-apple-disable-message-reformatting">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>Welcome to Bold & Brew!</title>
+  <style>
+    /* Reset & Base Styles */
+    html, body { margin: 0 auto !important; padding: 0 !important; height: 100% !important; width: 100% !important; background-color: #FDFBF7; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; }
+    * { -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%; }
+    div[style*="margin: 16px 0"] { margin: 0 !important; }
+    table, td { mso-table-lspace: 0pt !important; mso-table-rspace: 0pt !important; }
+    table { border-spacing: 0 !important; border-collapse: collapse !important; table-layout: fixed !important; margin: 0 auto !important; }
+    img { -ms-interpolation-mode: bicubic; display: block; border: 0; max-width: 100%; height: auto; }
+    a { text-decoration: none; color: #4A2C11; }
+    
+    /* Hover Effects for Modern Clients */
+    .btn-cta:hover { background-color: #331E0B !important; transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.15); }
+    .product-card:hover { transform: translateY(-4px); box-shadow: 0 6px 15px rgba(74,44,17,0.1) !important; }
+
+    /* Responsive Queries */
+    @media screen and (max-width: 600px) {
+      .email-container { width: 100% !important; margin: auto !important; }
+      .stack-column { display: block !important; width: 100% !important; max-width: 100% !important; direction: ltr !important; padding-left: 0 !important; padding-right: 0 !important; margin-bottom: 20px; }
+      .hero-title { font-size: 28px !important; line-height: 36px !important; }
+      .section-padding { padding: 30px 20px !important; }
+      .product-padding { padding: 15px !important; }
+      .logo-img { max-width: 95px !important; }
+      .header-bg { padding: 30px 15px !important; }
+    }
+  </style>
+</head>
+<body style="margin: 0; padding: 0 !important; mso-line-height-rule: exactly; background-color: #FDFBF7;">
+  <center style="width: 100%; background-color: #FDFBF7;">
+    
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="600" class="email-container" style="margin: 0 auto; background-color: #ffffff; box-shadow: 0 4px 20px rgba(74,44,17,0.05);">
+      
+      <tr>
+        <td align="center" class="header-bg" background="https://ik.imagekit.io/3xnjrgh8n/banner/Gemini_Generated_Image_lj9ewflj9ewflj9e.png?updatedAt=1779301409094" style="background-image: url('https://ik.imagekit.io/3xnjrgh8n/banner/Gemini_Generated_Image_lj9ewflj9ewflj9e.png?updatedAt=1779301409094'); background-size: cover; background-position: center center; padding: 45px 20px;">
+          <div>
+            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+              <tr>
+                <td align="center">
+                  <a href="https://boldandbrew.com/#/" target="_blank" style="display: inline-block;">
+                    <img src="https://ik.imagekit.io/3xnjrgh8n/5uO9QxtwQIG4LvLM5Kpt3w%20(1)%20(1)%20(1).jpg?updatedAt=1765119379797" alt="Bold & Brew Logo" width="110" class="logo-img" style="width: 100%; max-width: 110px; height: auto; display: block; border: 0; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border-radius: 4px;">
+                  </a>
+                </td>
+              </tr>
+            </table>
+          </div>
+          </td>
+      </tr>
+
+      <tr>
+        <td align="center" style="background-color: #2D1A0C; padding: 50px 40px;" class="section-padding">
+          <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+            <tr>
+              <td align="center">
+                <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin-bottom: 15px;">
+                  <tr>
+                    <td style="background-color: rgba(212,175,55,0.15); border: 1px solid #D4AF37; padding: 6px 16px; border-radius: 20px; color: #D4AF37; font-size: 12px; font-weight: bold; letter-spacing: 1.5px; text-transform: uppercase;">
+                      Welcome To The Club
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+            <tr>
+              <td align="center" class="hero-title" style="color: #ffffff; font-family: 'Georgia', serif; font-size: 36px; line-height: 44px; font-weight: 900; padding-bottom: 15px;">
+                Thanks for Subscribing!
+              </td>
+            </tr>
+            <tr>
+              <td align="center" style="color: #E2D7CD; font-size: 16px; line-height: 24px; padding-bottom: 30px; max-width: 480px;">
+                You are now on the VIP list. Get ready for exclusive first-access to premium launches, brewing secrets, and members-only offers delivered straight to your inbox.
+              </td>
+            </tr>
+            <tr>
+              <td align="center">
+                <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin: auto;">
+                  <tr>
+                    <td style="border-radius: 4px; background-color: #D4AF37; text-align: center;">
+                      <a href="https://boldandbrew.com/#/" target="_blank" class="btn-cta" style="background-color: #D4AF37; border: 1px solid #D4AF37; font-family: sans-serif; font-size: 15px; line-height: 15px; text-decoration: none; padding: 15px 35px; color: #1A0F05; font-weight: bold; display: block; border-radius: 4px; letter-spacing: 1px; transition: all 0.3s ease;">
+                        EXPLORE THE STORE
+                      </a>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+
+      <tr>
+        <td style="background-color: #F5EFEB; padding: 20px; border-bottom: 1px solid #EAE1D9;">
+          <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+            <tr>
+              <td align="center" style="font-size: 13px; color: #4A2C11; font-weight: bold; letter-spacing: 0.5px;">
+                ✨ Free Shipping on All Orders &nbsp;|&nbsp; ☕ Freshly Roasted 
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+
+      <tr>
+        <td align="center" style="padding: 45px 40px 20px 40px;" class="section-padding">
+          <h2 style="margin: 0; font-family: 'Georgia', serif; font-size: 24px; color: #2D1A0C; font-weight: bold; letter-spacing: 1px;">Our Current Bestsellers</h2>
+          <div style="height: 2px; width: 50px; background-color: #D4AF37; margin: 12px auto 0 auto;"></div>
+        </td>
+      </tr>
+
+      <tr>
+        <td style="padding: 0 30px 40px 30px;" class="section-padding">
+          <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="48%" align="left" class="stack-column" style="border: 1px solid #EAE1D9; border-radius: 8px; background-color: #ffffff; transition: all 0.3s ease; box-shadow: 0 2px 5px rgba(0,0,0,0.02);" class="product-card">
+            <tr>
+              <td style="padding: 20px;" class="product-padding">
+                <a href="https://boldandbrew.com/#/product/9qNXmyBIIF3rFvLGxsRp" target="_blank" style="display: block;">
+                  <img src="https://ik.imagekit.io/3xnjrgh8n/71G2SxNrjfL._SL1500_.jpg?updatedAt=1768044079218" alt="Bold & Brew Pure Instant Coffee" width="220" style="width: 100%; max-width: 220px; height: auto; margin: 0 auto 15px auto; border-radius: 4px;">
+                </a>
+                <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                  <tr>
+                    <td align="center" style="min-height: 44px; padding-bottom: 8px;">
+                      <h3 style="margin: 0; font-size: 15px; line-height: 20px; color: #2D1A0C; font-weight: bold; font-family: sans-serif;">
+                        Bold & Brew Pure Instant Coffee
+                      </h3>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td align="center" style="padding-bottom: 15px;">
+                      <span style="font-size: 13px; color: #7A6655; text-transform: uppercase; letter-spacing: 1px; font-weight: bold;">100% Pure Coffee</span>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td align="center">
+                      <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                        <tr>
+                          <td style="border-radius: 4px; background-color: #2D1A0C; text-align: center;">
+                            <a href="https://boldandbrew.com/#/product/9qNXmyBIIF3rFvLGxsRp" target="_blank" style="background-color: #2D1A0C; border: 1px solid #2D1A0C; font-family: sans-serif; font-size: 13px; line-height: 13px; text-decoration: none; padding: 12px 10px; color: #ffffff; font-weight: bold; display: block; border-radius: 4px; letter-spacing: 0.5px;">
+                              Buy Now
+                            </a>
+                          </td>
+                        </tr>
+                      </table>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+          
+          <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="48%" align="right" class="stack-column" style="border: 1px solid #EAE1D9; border-radius: 8px; background-color: #ffffff; transition: all 0.3s ease; box-shadow: 0 2px 5px rgba(0,0,0,0.02);" class="product-card">
+            <tr>
+              <td style="padding: 20px;" class="product-padding">
+                <a href="https://boldandbrew.com/#/product/FwLQDmCKjzHz13A71sHJ" target="_blank" style="display: block;">
+                  <img src="https://ik.imagekit.io/3xnjrgh8n/71e+4nQQooL._SL1500_.jpg?updatedAt=1768044079103" alt="Bold & Brew Strong Instant Coffee" width="220" style="width: 100%; max-width: 220px; height: auto; margin: 0 auto 15px auto; border-radius: 4px;">
+                </a>
+                <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                  <tr>
+                    <td align="center" style="min-height: 44px; padding-bottom: 8px;">
+                      <h3 style="margin: 0; font-size: 15px; line-height: 20px; color: #2D1A0C; font-weight: bold; font-family: sans-serif;">
+                        Bold & Brew Strong Instant Coffee
+                      </h3>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td align="center" style="padding-bottom: 15px;">
+                      <span style="font-size: 13px; color: #7A6655; text-transform: uppercase; letter-spacing: 1px; font-weight: bold;">70:30 Blend</span>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td align="center">
+                      <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                        <tr>
+                          <td style="border-radius: 4px; background-color: #2D1A0C; text-align: center;">
+                            <a href="https://boldandbrew.com/#/product/FwLQDmCKjzHz13A71sHJ" target="_blank" style="background-color: #2D1A0C; border: 1px solid #2D1A0C; font-family: sans-serif; font-size: 13px; line-height: 13px; text-decoration: none; padding: 12px 10px; color: #ffffff; font-weight: bold; display: block; border-radius: 4px; letter-spacing: 0.5px;">
+                              Buy Now
+                            </a>
+                          </td>
+                        </tr>
+                      </table>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+          
+          </td>
+      </tr>
+
+      <tr>
+        <td align="center" style="background-color: #1A0F05; padding: 40px 20px; color: #A49382; font-size: 12px; line-height: 20px;">
+          <p style="margin: 0 0 10px 0; font-family: 'Georgia', serif; font-size: 16px; color: #D4AF37; letter-spacing: 2px;">BOLD & BREW</p>
+          <p style="margin: 0 0 20px 0; color: #8A7663;">You are receiving this because you signed up to get awesome coffee updates on our website.</p>
+          
+          <table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin: 0 auto 20px auto;">
+            <tr>
+              <td style="padding: 0 10px;"><a href="https://boldandbrew.com/#/" target="_blank" style="color: #D4AF37; text-decoration: none; font-weight: bold;">Website</a></td>
+              <td style="padding: 0 10px; color: #4A3525;">•</td>
+              <td style="padding: 0 10px;"><a href="https://www.instagram.com/theboldandbrew/" target="_blank" style="color: #D4AF37; text-decoration: none; font-weight: bold;">Instagram</a></td>
+              <td style="padding: 0 10px; color: #4A3525;">•</td>
+              <td style="padding: 0 10px;"><a href="https://boldandbrew.com/#/contact" target="_blank" style="color: #D4AF37; text-decoration: none; font-weight: bold;">Support</a></td>
+            </tr>
+          </table>
+          
+          <p style="margin: 0; font-size: 11px; color: #6E5B4B;">&copy; 2026 Bold & Brew Inc. All Rights Reserved.<br>
+          <a href="https://wa.me/919310475549?text=Unsubscribe%20from%20Bold%20%26%20Brew%20emails" target="_blank" style="color: #A49382; text-decoration: underline;">Unsubscribe</a> from these updates.</p>
+        </td>
+      </tr>
+
+    </table>
+    
+  </center>
+</body>
+</html>`;
+
+      // Send email using existing Gmail helper
+      await sendEmailViaGmail(
+        customerEmail,
+        "Subscriber",
+        "Welcome to Bold & Brew!",
+        htmlEmail
+      );
+
+      console.log('✅ Newsletter welcome email sent to:', customerEmail);
+    } catch (error) {
+      console.error('❌ Error sending newsletter email:', error);
+    }
+  });// exports.listPickupAddresses = functions.region('asia-south1').https.onCall(async () => { throw new functions.https.HttpsError('unavailable','Removed'); });

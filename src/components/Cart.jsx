@@ -185,7 +185,7 @@ function Cart({
                       }
                     >
                       {item.name}
-                      <ProductRating productId={item.id} />
+                      <ProductRating productId={item.id} justifyContent="flex-start" />
                     </div>
                     <div className="cart-item-brand-pro">{item.brand}</div>
                     <div className="cart-item-price-pro">

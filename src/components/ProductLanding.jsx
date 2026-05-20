@@ -103,11 +103,11 @@ function ProductLanding({ products, onAddToCart, onAddToWishlist }) {
     ? effectiveProduct.images.filter(img => typeof img === 'string' && img.trim() !== '')
     : [];
   const mainImg = effectiveProduct?.mainImage && typeof effectiveProduct.mainImage === 'string' && effectiveProduct.mainImage.trim() !== '' ? effectiveProduct.mainImage.trim() : null;
-  // Build gallery: keep order and duplicates so user can see every slot stored
-  const galleryImages = [
+  // Build gallery: remove duplicates using a Set to prevent same image showing twice
+  const galleryImages = Array.from(new Set([
     ...(mainImg ? [mainImg] : []),
     ...dynamicImages
-  ];
+  ]));
   if (process.env.NODE_ENV !== 'production') {
     console.log('ProductLanding raw images array:', effectiveProduct?.images);
     console.log('ProductLanding built galleryImages:', galleryImages);

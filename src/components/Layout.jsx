@@ -3,6 +3,7 @@ import AutoScrollBanner from './AutoScrollBanner';
 import Footer from './Footer'
 import DotGrid from '../blocks/Backgrounds/DotGrid/DotGrid'
 import { useLocation } from 'react-router-dom'
+import NewsletterPopup from './NewsletterPopup';
 
 const Layout = ({ children, cartCount, wishlistCount }) => {
   const location = useLocation()
@@ -36,6 +37,7 @@ const Layout = ({ children, cartCount, wishlistCount }) => {
         {children}
       </main>
       <Footer />
+      <NewsletterPopup />
     </div>
   )
 }

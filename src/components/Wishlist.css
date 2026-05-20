@@ -45,12 +45,15 @@
 
 .wishlist-details {
   flex: 1;
+  min-width: 0;
 }
 
 .wishlist-details h3 {
   margin: 0;
   font-size: 1.2rem;
   color: #3e2723;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
 }
 
 @media (max-width: 768px) {
@@ -69,6 +72,7 @@
 
 .wishlist-actions {
   display: flex;
+  flex-wrap: wrap;
   gap: 1rem;
   margin-top: 0.5rem;
 }

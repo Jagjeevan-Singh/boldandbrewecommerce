@@ -4,7 +4,7 @@ import { db } from '../firebase';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { FaStar } from 'react-icons/fa';
 
-function ProductRating({ productId, onRatingUpdate }) {
+function ProductRating({ productId, onRatingUpdate, justifyContent = 'center' }) {
   const [avg, setAvg] = useState(null);
   const [count, setCount] = useState(0);
 
@@ -49,7 +49,7 @@ function ProductRating({ productId, onRatingUpdate }) {
     } style={{
       display: 'flex',
       alignItems: 'center',
-      justifyContent: 'center',
+      justifyContent: justifyContent,
       flexWrap: 'nowrap',
       whiteSpace: 'nowrap',
       gap: '2px'

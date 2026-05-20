@@ -45,7 +45,7 @@ function Wishlist({ items = [], onRemove, onMoveToCart }) {
                   >
                     {item.name}
                   </h3>
-                    <ProductRating productId={item.id} />
+                    <ProductRating productId={item.id} justifyContent="flex-start" />
                   <p className="price">₹{item.price}</p>
                   <div className="wishlist-actions">
                     <button className="move-btn" onClick={() => onMoveToCart(item)} disabled={outOfStock} style={outOfStock ? {opacity:0.6, cursor:'not-allowed'} : {}}>
