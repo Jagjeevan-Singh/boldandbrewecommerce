@@ -56,10 +56,20 @@ function Cart({
           .map(doc => ({ id: doc.id, ...doc.data() }))
           .filter(coupon => {
             // Filter by validity dates
-            if (coupon.validFrom && coupon.validFrom.toDate() > now) return false;
-            if (coupon.validUntil && coupon.validUntil.toDate() < now) return false;
+            if (coupon.validFrom) {
+              const fromDate = typeof coupon.validFrom.toDate === 'function' ? coupon.validFrom.toDate() : new Date(coupon.validFrom);
+              if (fromDate > now) return false;
+            }
+            if (coupon.validUntil) {
+              const untilDate = typeof coupon.validUntil.toDate === 'function' ? coupon.validUntil.toDate() : new Date(coupon.validUntil);
+              if (untilDate < now) return false;
+            }
             // Filter by usage limit
             if (coupon.usageLimit > 0 && (coupon.usedCount || 0) >= coupon.usageLimit) return false;
+            
+            // Filter by public visibility (default to true if undefined for legacy coupons)
+            if (coupon.showToAllUsers === false) return false;
+            
             return true;
           });
         
@@ -78,11 +88,12 @@ function Cart({
     setSelectedCoupon(couponCode);
     setCoupon(couponCode);
     setShowCouponDropdown(false);
+    onApplyCoupon(couponCode);
   };
 
   const handleApplyCoupon = () => {
     if (selectedCoupon || coupon) {
-      onApplyCoupon();
+      onApplyCoupon(coupon || selectedCoupon);
     }
   };
 
@@ -192,7 +203,7 @@ function Cart({
                       <span
                         style={{
                           fontWeight: 'bold',
-                          color: '#4a3c35',
+                          color: '#d32f2f',
                           fontSize: '1.1em',
                         }}
                       >
@@ -281,57 +292,79 @@ function Cart({
             <span>Free</span>
           </div>
 
-          {/* Coupon Section with Dropdown */}
+          {/* Coupon Section with Dropdown & Input */}
           <div className="cart-coupon-section-pro">
             <h4 style={{ fontSize: '0.95rem', fontWeight: 600, color: '#4a3c35', marginBottom: '0.5rem' }}>
               Apply Coupon
             </h4>
             
-            {!selectedCoupon && !coupon ? (
-              <div className="coupon-dropdown-container-pro">
-                <button 
-                  className="coupon-select-btn-pro"
-                  onClick={() => setShowCouponDropdown(!showCouponDropdown)}
-                  disabled={loadingCoupons}
-                >
-                  {loadingCoupons ? 'Loading coupons...' : 'Select a coupon'}
-                </button>
-                
-                {showCouponDropdown && availableCoupons.length > 0 && (
-                  <div className="coupon-dropdown-list-pro">
-                    {availableCoupons.map((cpn) => {
-                      const isEligible = subtotal >= (cpn.minOrderValue || 0);
-                      return (
-                        <div 
-                          key={cpn.id}
-                          className={`coupon-item-pro ${!isEligible ? 'disabled' : ''}`}
-                          onClick={() => isEligible && handleCouponSelect(cpn.code)}
-                        >
-                          <div className="coupon-item-header-pro">
-                            <span className="coupon-code-pro">{cpn.code}</span>
-                            {!isEligible && (
-                              <span className="coupon-ineligible-pro">
-                                Min ₹{cpn.minOrderValue}
-                              </span>
-                            )}
+            {!discount ? (
+              <>
+                <div className="cart-coupon-pro">
+                  <input 
+                    type="text" 
+                    className="cart-coupon-input-pro" 
+                    placeholder="Enter coupon code" 
+                    value={coupon || selectedCoupon}
+                    onChange={(e) => {
+                      setCoupon(e.target.value.toUpperCase());
+                      setSelectedCoupon(e.target.value.toUpperCase());
+                    }}
+                  />
+                  <button 
+                    className="apply-coupon-btn-pro"
+                    onClick={handleApplyCoupon}
+                    disabled={!coupon && !selectedCoupon}
+                  >
+                    Apply
+                  </button>
+                </div>
+
+                <div className="coupon-dropdown-container-pro" style={{ marginTop: '0.5rem' }}>
+                  <button 
+                    className="coupon-select-btn-pro"
+                    onClick={() => setShowCouponDropdown(!showCouponDropdown)}
+                    disabled={loadingCoupons}
+                  >
+                    {loadingCoupons ? 'Loading coupons...' : 'Select from available coupons'}
+                  </button>
+                  
+                  {showCouponDropdown && availableCoupons.length > 0 && (
+                    <div className="coupon-dropdown-list-pro">
+                      {availableCoupons.map((cpn) => {
+                        const isEligible = subtotal >= (cpn.minOrderValue || 0);
+                        return (
+                          <div 
+                            key={cpn.id}
+                            className={`coupon-item-pro ${!isEligible ? 'disabled' : ''}`}
+                            onClick={() => isEligible && handleCouponSelect(cpn.code)}
+                          >
+                            <div className="coupon-item-header-pro">
+                              <span className="coupon-code-pro">{cpn.code}</span>
+                              {!isEligible && (
+                                <span className="coupon-ineligible-pro">
+                                  Min ₹{cpn.minOrderValue}
+                                </span>
+                              )}
+                            </div>
+                            <div className="coupon-description-pro">
+                              {getCouponDescription(cpn)}
+                            </div>
                           </div>
-                          <div className="coupon-description-pro">
-                            {getCouponDescription(cpn)}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-                
-                {showCouponDropdown && availableCoupons.length === 0 && !loadingCoupons && (
-                  <div className="coupon-dropdown-list-pro">
-                    <div className="coupon-item-pro disabled">
-                      No coupons available
+                        );
+                      })}
                     </div>
-                  </div>
-                )}
-              </div>
+                  )}
+                  
+                  {showCouponDropdown && availableCoupons.length === 0 && !loadingCoupons && (
+                    <div className="coupon-dropdown-list-pro">
+                      <div className="coupon-item-pro disabled">
+                        No coupons available
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </>
             ) : (
               <div className="applied-coupon-container-pro">
                 <div className="applied-coupon-info-pro">
@@ -344,14 +377,6 @@ function Cart({
                     <FaTimes />
                   </button>
                 </div>
-                {discount === 0 && (
-                  <button 
-                    className="apply-coupon-action-btn-pro"
-                    onClick={handleApplyCoupon}
-                  >
-                    Apply Coupon
-                  </button>
-                )}
               </div>
             )}
 

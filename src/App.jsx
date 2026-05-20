@@ -120,14 +120,20 @@ function App() {
     
     // Check validity dates
     const now = new Date();
-    if (couponDoc.validFrom && couponDoc.validFrom.toDate() > now) {
-      setCouponError("Coupon is not yet valid.");
-      return;
+    if (couponDoc.validFrom) {
+      const fromDate = typeof couponDoc.validFrom.toDate === 'function' ? couponDoc.validFrom.toDate() : new Date(couponDoc.validFrom);
+      if (fromDate > now) {
+        setCouponError("Coupon is not yet valid.");
+        return;
+      }
     }
     
-    if (couponDoc.validUntil && couponDoc.validUntil.toDate() < now) {
-      setCouponError("Coupon expired.");
-      return;
+    if (couponDoc.validUntil) {
+      const untilDate = typeof couponDoc.validUntil.toDate === 'function' ? couponDoc.validUntil.toDate() : new Date(couponDoc.validUntil);
+      if (untilDate < now) {
+        setCouponError("Coupon expired.");
+        return;
+      }
     }
     
     // Check minimum order value
@@ -156,8 +162,9 @@ function App() {
     setDiscount(Math.min(calculatedDiscount, currentSubtotal));
   };
 
-  const handleApplyCoupon = async () => {
-    await fetchAndApplyCoupon(coupon, subtotal);
+  const handleApplyCoupon = async (codeToApply) => {
+    const code = typeof codeToApply === 'string' ? codeToApply : coupon;
+    await fetchAndApplyCoupon(code, subtotal);
   };
 
   const handleRemoveCoupon = () => {

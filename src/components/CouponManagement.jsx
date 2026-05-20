@@ -21,9 +21,9 @@ export default function CouponManagement() {
     maxDiscount: '',
     usageLimit: '',
     usedCount: 0,
-    validFrom: '',
     validUntil: '',
-    isActive: true
+    isActive: true,
+    showToAllUsers: true
   });
 
   useEffect(() => {
@@ -58,9 +58,9 @@ export default function CouponManagement() {
       maxDiscount: '',
       usageLimit: '',
       usedCount: 0,
-      validFrom: '',
       validUntil: '',
-      isActive: true
+      isActive: true,
+      showToAllUsers: true
     });
     setEditingCoupon(null);
     setShowForm(false);
@@ -79,7 +79,8 @@ export default function CouponManagement() {
       usedCount: coupon.usedCount || 0,
       validFrom: coupon.validFrom ? new Date(coupon.validFrom).toISOString().slice(0, 16) : '',
       validUntil: coupon.validUntil ? new Date(coupon.validUntil).toISOString().slice(0, 16) : '',
-      isActive: coupon.isActive !== undefined ? coupon.isActive : true
+      isActive: coupon.isActive !== undefined ? coupon.isActive : true,
+      showToAllUsers: coupon.showToAllUsers !== undefined ? coupon.showToAllUsers : true
     });
     setShowForm(true);
   };
@@ -105,6 +106,7 @@ export default function CouponManagement() {
         validFrom: formData.validFrom ? Timestamp.fromDate(new Date(formData.validFrom)) : null,
         validUntil: formData.validUntil ? Timestamp.fromDate(new Date(formData.validUntil)) : null,
         isActive: formData.isActive,
+        showToAllUsers: formData.showToAllUsers,
         updatedAt: Timestamp.now()
       };
 
@@ -305,7 +307,7 @@ export default function CouponManagement() {
                 </div>
               </div>
 
-              <div className="form-group">
+              <div className="form-group" style={{ display: 'flex', gap: '1rem' }}>
                 <label className="checkbox-label">
                   <input
                     type="checkbox"
@@ -313,6 +315,14 @@ export default function CouponManagement() {
                     onChange={(e) => setFormData({...formData, isActive: e.target.checked})}
                   />
                   <span>Active</span>
+                </label>
+                <label className="checkbox-label">
+                  <input
+                    type="checkbox"
+                    checked={formData.showToAllUsers}
+                    onChange={(e) => setFormData({...formData, showToAllUsers: e.target.checked})}
+                  />
+                  <span>Show in Dropdown</span>
                 </label>
               </div>
 
